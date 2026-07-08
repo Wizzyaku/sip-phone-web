@@ -10,7 +10,18 @@ export interface StoredMessage {
   status: string;
 }
 
-const redis = Redis.fromEnv();
+const url =
+  process.env.UPSTASH_REDIS_KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const token =
+  process.env.UPSTASH_REDIS_KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+if (!url || !token) {
+  throw new Error(
+    'Missing Upstash Redis credentials. Set UPSTASH_REDIS_KV_REST_API_URL and UPSTASH_REDIS_KV_REST_API_TOKEN (or UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN).'
+  );
+}
+
+const redis = new Redis({ url, token });
 const MESSAGES_KEY = 'messages';
 const MAX_MESSAGES = 1000;
 
