@@ -1,0 +1,315 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Invitation,
+  Inviter,
+  Registerer,
+  RegistererState,
+  Session,
+  SessionState,
+  UserAgent,
+} from 'sip.js';
+import type { UserAgentOptions } from 'sip.js';
+
+export type SipStatus = 'idle' | 'connecting' | 'connected' | 'registered' | 'disconnected' | 'error';
+
+export interface SipSettings {
+  username: string;
+  password: string;
+  phoneNumber: string;
+}
+
+export interface ActiveCall {
+  session: Session;
+  direction: 'incoming' | 'outgoing';
+  remoteIdentity: string;
+  status: string;
+  muted: boolean;
+  speakerOn: boolean;
+  startTime?: string;
+  durationSeconds: number;
+  localStream?: MediaStream;
+  remoteStream?: MediaStream;
+}
+
+function getPeerConnection(session: Session): RTCPeerConnection | undefined {
+  const handler = (session as any).sessionDescriptionHandler;
+  return handler?.peerConnection as RTCPeerConnection | undefined;
+}
+
+export function useSip() {
+  const userAgentRef = useRef<UserAgent | null>(null);
+  const registererRef = useRef<Registerer | null>(null);
+  const registeredRef = useRef(false);
+  const [status, setStatus] = useState<SipStatus>('idle');
+  const [activeCall, setActiveCall] = useState<ActiveCall | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const timerRef = useRef<number | null>(null);
+
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const startTimer = useCallback(() => {
+    stopTimer();
+    timerRef.current = window.setInterval(() => {
+      setActiveCall((prev) =>
+        prev && prev.startTime
+          ? { ...prev, durationSeconds: Math.floor((Date.now() - new Date(prev.startTime).getTime()) / 1000) }
+          : prev
+      );
+    }, 1000);
+  }, [stopTimer]);
+
+  const handleSession = useCallback((session: Session, direction: 'incoming' | 'outgoing') => {
+    const remoteIdentity = session.remoteIdentity?.uri?.toString?.() || 'Unknown';
+
+    setActiveCall({
+      session,
+      direction,
+      remoteIdentity,
+      status: direction === 'incoming' ? 'Ringing' : 'Calling',
+      muted: false,
+      speakerOn: true,
+      durationSeconds: 0,
+    });
+
+    session.stateChange.addListener((newState: SessionState) => {
+      if (newState === SessionState.Establishing) {
+        setActiveCall((prev) => (prev ? { ...prev, status: 'Connecting' } : prev));
+      } else if (newState === SessionState.Established) {
+        const startTime = new Date().toISOString();
+        setActiveCall((prev) => {
+          if (!prev) return prev;
+          const updated = { ...prev, status: 'In call', startTime };
+          startTimer();
+          return updated;
+        });
+      } else if (newState === SessionState.Terminated) {
+        stopTimer();
+        setActiveCall(null);
+      }
+    });
+
+    const pc = getPeerConnection(session);
+    if (pc) {
+      pc.ontrack = (event) => {
+        setActiveCall((prev) =>
+          prev ? { ...prev, remoteStream: event.streams[0] } : prev
+        );
+      };
+    }
+  }, [startTimer, stopTimer]);
+
+  const register = useCallback(async (settings: SipSettings) => {
+    try {
+      setError(null);
+      setStatus('connecting');
+      registeredRef.current = false;
+
+      const domain = 'sip.telnyx.com';
+      const wsServer = 'wss://sip.telnyx.com:7443';
+      const uriString = `sip:${settings.username}@${domain}`;
+      const uri = UserAgent.makeURI(uriString);
+      if (!uri) {
+        throw new Error(`Invalid SIP URI: ${uriString}`);
+      }
+
+      const displayName = settings.phoneNumber ? settings.phoneNumber.replace(/[^0-9]/g, '') : 'User';
+
+      const userAgentOptions: UserAgentOptions = {
+        uri,
+        transportOptions: {
+          wsServers: [wsServer],
+          connectionTimeout: 10000,
+          reconnectionDelay: 3000,
+          maxReconnectionAttempts: 3,
+        },
+        authorizationUsername: settings.username,
+        authorizationPassword: settings.password,
+        displayName,
+        contactParams: {
+          transport: 'ws',
+        },
+        delegate: {
+          onInvite: (invitation: Invitation) => {
+            console.log('Incoming SIP invite from', invitation.remoteIdentity.uri.toString());
+            handleSession(invitation, 'incoming');
+          },
+          onConnect: () => {
+            console.log('SIP transport connected');
+            setStatus('connected');
+          },
+          onDisconnect: (err) => {
+            console.log('SIP transport disconnected', err);
+            setStatus('disconnected');
+            registeredRef.current = false;
+          },
+        },
+        sessionDescriptionHandlerFactoryOptions: {
+          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+        },
+      };
+
+      const userAgent = new UserAgent(userAgentOptions);
+      userAgentRef.current = userAgent;
+
+      const registerer = new Registerer(userAgent);
+      registererRef.current = registerer;
+      registerer.stateChange.addListener((newState: RegistererState) => {
+        if (newState === RegistererState.Registered) {
+          setStatus('registered');
+          registeredRef.current = true;
+        } else if (newState === RegistererState.Unregistered) {
+          setStatus('disconnected');
+          registeredRef.current = false;
+        }
+      });
+
+      console.log('[SIP] Starting UserAgent with URI:', uriString);
+      console.log('[SIP] WebSocket server:', wsServer);
+      await userAgent.start();
+      console.log('[SIP] Transport started, sending REGISTER...');
+      await registerer.register();
+      console.log('[SIP] REGISTER sent');
+    } catch (err) {
+      setStatus('error');
+      setError(err instanceof Error ? err.message : 'Unknown SIP error');
+      console.error('SIP registration error:', err);
+    }
+  }, [handleSession]);
+
+  const unregister = useCallback(async () => {
+    try {
+      if (registererRef.current) {
+        await registererRef.current.unregister();
+      }
+      registeredRef.current = false;
+    } catch (err) {
+      console.error('SIP unregister error:', err);
+    }
+  }, []);
+
+  const call = useCallback(
+    async (target: string) => {
+      if (!userAgentRef.current || !registeredRef.current) {
+        setError('Not registered');
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        setActiveCall((prev) => (prev ? { ...prev, localStream: stream } : prev));
+
+        const normalized = normalizeTelnyxTarget(target);
+        const targetUri = UserAgent.makeURI(normalized);
+        if (!targetUri) {
+          throw new Error(`Invalid call target: ${normalized}`);
+        }
+
+        const inviter = new Inviter(userAgentRef.current, targetUri, {
+          sessionDescriptionHandlerOptions: {
+            constraints: { audio: true, video: false },
+          },
+        });
+
+        handleSession(inviter, 'outgoing');
+        await inviter.invite();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Could not start call');
+        setActiveCall(null);
+        console.error('SIP call error:', err);
+      }
+    },
+    [handleSession]
+  );
+
+  const hangup = useCallback(() => {
+    const session = activeCall?.session;
+    if (!session) return;
+    try {
+      session.bye();
+    } catch (err) {
+      console.error('SIP hangup error:', err);
+    }
+    setActiveCall(null);
+  }, [activeCall]);
+
+  const toggleMute = useCallback(() => {
+    const session = activeCall?.session;
+    if (!session) return;
+    const pc = getPeerConnection(session);
+    if (!pc) return;
+    const senders = pc.getSenders();
+    const audioSender = senders.find((s) => s.track?.kind === 'audio');
+    if (audioSender?.track) {
+      audioSender.track.enabled = !audioSender.track.enabled;
+      setActiveCall((prev) =>
+        prev ? { ...prev, muted: !audioSender.track!.enabled } : prev
+      );
+    }
+  }, [activeCall]);
+
+  const toggleSpeaker = useCallback(() => {
+    setActiveCall((prev) => (prev ? { ...prev, speakerOn: !prev.speakerOn } : prev));
+  }, []);
+
+  const acceptCall = useCallback(() => {
+    const session = activeCall?.session;
+    if (!session || activeCall?.direction !== 'incoming') return;
+    if (session instanceof Invitation) {
+      session
+        .accept({
+          sessionDescriptionHandlerOptions: {
+            constraints: { audio: true, video: false },
+          },
+        })
+        .catch((err: Error) => {
+          console.error('Failed to accept invite:', err);
+          setError(`Failed to answer: ${err.message}`);
+          setActiveCall(null);
+        });
+    }
+  }, [activeCall]);
+
+  const rejectCall = useCallback(() => {
+    const session = activeCall?.session;
+    if (!session || activeCall?.direction !== 'incoming') return;
+    if (session instanceof Invitation) {
+      session.reject();
+    }
+    setActiveCall(null);
+  }, [activeCall]);
+
+  useEffect(() => {
+    return () => {
+      stopTimer();
+      userAgentRef.current?.stop().catch((err) => console.error('SIP stop error:', err));
+    };
+  }, [stopTimer]);
+
+  return {
+    status,
+    error,
+    activeCall,
+    register,
+    unregister,
+    call,
+    hangup,
+    toggleMute,
+    toggleSpeaker,
+    acceptCall,
+    rejectCall,
+  };
+}
+
+function normalizeTelnyxTarget(target: string): string {
+  if (target.startsWith('sip:')) {
+    return target;
+  }
+  const digits = target.replace(/[^0-9+]/g, '');
+  return `sip:${digits}@sip.telnyx.com`;
+}

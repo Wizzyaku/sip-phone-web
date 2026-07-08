@@ -1,0 +1,82 @@
+import { useEffect, lazy, Suspense } from 'react';
+import { createBrowserRouter, RouterProvider, Navigate, useRouteError } from 'react-router-dom';
+import { Layout } from './layout/Layout';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { NotificationToast } from './components/NotificationToast';
+import { Skeleton } from './components/ui/skeleton';
+import { Button } from './components/ui/button';
+import { initTheme } from './store/appStore';
+import { useNotifications } from './hooks/useNotifications';
+
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Calls = lazy(() => import('./pages/Calls'));
+const Messages = lazy(() => import('./pages/Messages'));
+const Contacts = lazy(() => import('./pages/Contacts'));
+const Settings = lazy(() => import('./pages/Settings'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+const pageFallback = (
+  <div className="space-y-4 p-4">
+    <Skeleton className="h-8 w-1/3" />
+    <Skeleton className="h-64 w-full" />
+    <Skeleton className="h-64 w-full" />
+  </div>
+);
+
+function AppProviders() {
+  useEffect(() => {
+    initTheme();
+  }, []);
+
+  useNotifications();
+
+  return <NotificationToast />;
+}
+
+function RouteError() {
+  const error = useRouteError() as Error | { statusText?: string; message?: string };
+  const message = 'message' in error ? error.message : 'statusText' in error ? error.statusText : 'Unknown error';
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md rounded-lg border bg-card p-6 shadow-lg">
+        <h1 className="text-xl font-semibold">Something went wrong</h1>
+        <p className="mt-2 text-sm text-muted-foreground">An unexpected routing error occurred.</p>
+        {message && <pre className="mt-4 max-h-32 overflow-auto rounded-md bg-muted p-2 text-xs">{message}</pre>}
+        <div className="mt-4 flex gap-2">
+          <Button onClick={() => window.location.reload()}>Reload page</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout />,
+    errorElement: <RouteError />,
+    children: [
+      { index: true, element: <Navigate to="/dashboard" replace /> },
+      { path: 'dashboard', element: <Dashboard /> },
+      { path: 'calls', element: <Calls /> },
+      { path: 'messages', element: <Messages /> },
+      { path: 'contacts', element: <Contacts /> },
+      { path: 'settings', element: <Settings /> },
+      { path: '*', element: <NotFound /> },
+    ],
+  },
+]);
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={pageFallback}>
+        <AppProviders />
+        <RouterProvider router={router} />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+
+export default App;
