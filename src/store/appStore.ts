@@ -67,6 +67,7 @@ interface AppState {
   user: User;
   theme: 'light' | 'dark' | 'system';
   resolvedTheme: 'light' | 'dark';
+  telnyxNumber: string | null;
   notifications: Notification[];
   messages: Message[];
   conversations: Conversation[];
@@ -75,6 +76,7 @@ interface AppState {
   mediaUploads: MediaUpload[];
   setUser: (user: User) => void;
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  setTelnyxNumber: (number: string | null) => void;
   addNotification: (notification: Omit<Notification, 'id' | 'read' | 'createdAt'>) => string;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
@@ -149,6 +151,7 @@ export const useAppStore = create<AppState>()(
       },
       theme: 'system',
       resolvedTheme: 'light',
+      telnyxNumber: null,
       notifications: [],
       messages: [],
       conversations: [],
@@ -166,6 +169,7 @@ export const useAppStore = create<AppState>()(
         document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
         set({ theme, resolvedTheme });
       },
+      setTelnyxNumber: (telnyxNumber) => set({ telnyxNumber }),
       addNotification: (notification) => {
         const now = new Date().toISOString();
         const existing = get().notifications.find(
@@ -247,7 +251,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'app-storage',
-      partialize: (state) => ({ theme: state.theme, user: state.user }),
+      partialize: (state) => ({ theme: state.theme, user: state.user, telnyxNumber: state.telnyxNumber }),
     }
   )
 );

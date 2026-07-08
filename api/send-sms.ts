@@ -10,6 +10,11 @@ export const config = {
 const TELNYX_API_KEY = process.env.TELNYX_API_KEY ?? '';
 const TELNYX_PHONE_NUMBER = process.env.TELNYX_PHONE_NUMBER ?? '';
 
+function normalizePhone(number: string): string {
+  const digits = number.replace(/\D/g, '');
+  return digits.startsWith('1') && digits.length === 11 ? `+${digits}` : `+${digits}`;
+}
+
 function parseJsonBody(req: VercelRequest): Record<string, unknown> {
   const raw = req.body as Buffer | string | Record<string, unknown>;
   if (Buffer.isBuffer(raw)) {
@@ -47,10 +52,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const to = body.to as string | undefined;
   const messageBody = body.body as string | undefined;
+  const rawFrom = body.from as string | undefined;
+  const fromNumber = rawFrom ? normalizePhone(rawFrom) : TELNYX_PHONE_NUMBER;
 
-  console.log('Send SMS request. to:', to, 'body:', messageBody);
+  console.log('Send SMS request. to:', to, 'from:', fromNumber, 'body:', messageBody);
   if (!to || !messageBody) {
     res.status(400).json({ error: 'Missing "to" or "body"' });
+    return;
+  }
+
+  if (!fromNumber) {
+    res.status(400).json({ error: 'Missing sender number. Set TELNYX_PHONE_NUMBER or provide "from" in the request.' });
     return;
   }
 
@@ -62,7 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: TELNYX_PHONE_NUMBER,
+        from: fromNumber,
         to,
         text: messageBody,
       }),
@@ -79,7 +91,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const message = data.data;
     const record = {
       sid: message.id,
-      from: message.from?.phone_number || TELNYX_PHONE_NUMBER,
+      from: message.from?.phone_number || fromNumber,
       to: message.to?.[0]?.phone_number || to,
       body: message.text || messageBody,
       direction: 'outbound' as const,

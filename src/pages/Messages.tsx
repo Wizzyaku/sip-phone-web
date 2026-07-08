@@ -79,6 +79,7 @@ export function Messages() {
   const mediaUploads = useAppStore((s) => s.mediaUploads);
   const addMediaUpload = useAppStore((s) => s.addMediaUpload);
   const removeMediaUpload = useAppStore((s) => s.removeMediaUpload);
+  const telnyxNumber = useAppStore((s) => s.telnyxNumber);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -156,14 +157,22 @@ export function Messages() {
 
   const sendTextMessage = async () => {
     if (!to.trim() || !body.trim()) return;
+    if (!telnyxNumber) {
+      setError('No sender number configured. Go to Settings and verify your Telnyx number.');
+      return;
+    }
     setSending(true);
     setError(null);
     try {
-      const res = await axios.post(`${API_URL}/send-sms`, { to: to.trim(), body: body.trim() });
+      const res = await axios.post(`${API_URL}/send-sms`, {
+        to: to.trim(),
+        body: body.trim(),
+        from: telnyxNumber,
+      });
       addStoreMessage({
         id: res.data.sid || crypto.randomUUID(),
         conversationId: to.trim(),
-        from: '',
+        from: telnyxNumber,
         to: to.trim(),
         body: body.trim(),
         type: 'text',
@@ -181,11 +190,11 @@ export function Messages() {
   };
 
   const sendMediaMessage = (type: MessageType, file: File, url: string) => {
-    if (!to.trim()) return;
+    if (!to.trim() || !telnyxNumber) return;
     addStoreMessage({
       id: crypto.randomUUID(),
       conversationId: to.trim(),
-      from: '',
+      from: telnyxNumber,
       to: to.trim(),
       body: type === 'audio' ? 'Voice message' : file.name,
       type,
@@ -504,7 +513,7 @@ export function Messages() {
               <Button
                 type="submit"
                 size="icon"
-                disabled={sending || !to.trim() || (mediaUploads.length === 0 && !body.trim())}
+                disabled={sending || !to.trim() || !telnyxNumber || (mediaUploads.length === 0 && !body.trim())}
               >
                 <Send className="h-4 w-4" />
               </Button>
