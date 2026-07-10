@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo, memo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Phone,
   Loader2,
@@ -14,6 +15,7 @@ import {
   Delete,
   Video,
   ChevronDown,
+  Bell,
 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -70,6 +72,7 @@ function parseDuration(duration: string): number {
 }
 
 export function Calls() {
+  const navigate = useNavigate();
   const { status, error, activeCall, register, call } = useSipContext();
   const telnyxNumber = useAppStore((s) => s.telnyxNumber);
 
@@ -85,6 +88,7 @@ export function Calls() {
   const [recentFilter, setRecentFilter] = useState<RecentFilter>('all');
   const [recentLoading, setRecentLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'recents' | 'keypad'>('recents');
   const [callHistory, setCallHistory] = useState<CallRecord[]>([
     { id: '1', name: 'Sarah Jenkins', phone: '+1 (555) 098-7654', time: '10:24 AM', duration: '12m 45s', type: 'incoming', recorded: true, date: new Date(Date.now() - 1000 * 60 * 60 * 2) },
     { id: '2', name: 'Support Ticket #882', phone: '+1 (800) 912-0033', time: '09:15 AM', duration: '03m 12s', type: 'outgoing', recorded: false, date: new Date(Date.now() - 1000 * 60 * 60 * 4) },
@@ -178,8 +182,270 @@ export function Calls() {
     { id: 'recorded', label: 'Recorded' },
   ];
 
+  function MobileCalls() {
+    const isConnected = status === 'registered';
+    const statusLabel = isConnected
+      ? 'SIP: Connected'
+      : status === 'connecting'
+      ? 'SIP: Connecting...'
+      : 'SIP: Disconnected';
+
+    const formattedDial = useMemo(() => {
+      const digits = number.replace(/\D/g, '');
+      if (digits.length > 6) {
+        return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+      }
+      if (digits.length > 3) {
+        return `${digits.slice(0, 3)}-${digits.slice(3, 6)}`;
+      }
+      return digits;
+    }, [number]);
+
+    return (
+      <div className="flex h-[calc(100vh-7.5rem)] flex-col gap-0 overflow-hidden bg-gradient-to-b from-muted/50 to-background -mx-4 md:hidden">
+        {/* Mobile Header */}
+        <header className="flex items-center justify-between px-4 py-3 shrink-0 z-20 bg-background/90 backdrop-blur-md border-b border-border/20">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-muted border-2 border-primary/20 overflow-hidden shadow-sm flex items-center justify-center text-xs font-bold text-primary">
+              {activeLine.slice(-2).toUpperCase()}
+            </div>
+            <div className="flex flex-col">
+              <h1 className="text-sm font-bold text-foreground leading-none mb-1">Calls</h1>
+              <div className="flex items-center gap-1.5">
+                <span className={cn('h-1.5 w-1.5 rounded-full', isConnected ? 'bg-green-500' : 'bg-yellow-500')} />
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{statusLabel}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:bg-muted">
+              <Bell className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              className="rounded-lg text-[11px] font-semibold px-3 py-1.5 h-auto"
+              onClick={() => navigate('/phone-numbers')}
+            >
+              Buy #
+            </Button>
+          </div>
+        </header>
+
+        {/* Recents / Keypad View Toggle */}
+        <div className="px-4 py-3 shrink-0 bg-background/90 backdrop-blur-md z-10">
+          <div className="flex bg-muted rounded-xl p-1 shadow-inner">
+            <button
+              onClick={() => setMobileTab('recents')}
+              className={cn(
+                'flex-1 py-1.5 rounded-lg text-xs font-bold transition-all',
+                mobileTab === 'recents' ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground'
+              )}
+            >
+              Recents
+            </button>
+            <button
+              onClick={() => setMobileTab('keypad')}
+              className={cn(
+                'flex-1 py-1.5 rounded-lg text-xs font-bold transition-all',
+                mobileTab === 'keypad' ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground'
+              )}
+            >
+              Keypad
+            </button>
+          </div>
+        </div>
+
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto relative flex flex-col w-full pb-20 no-scrollbar">
+          {/* View 1: Recents & Logs */}
+          {mobileTab === 'recents' && (
+            <div className="flex flex-col w-full px-4 gap-4 pb-4 pt-1">
+              {/* Current Active Number Selector */}
+              <div className="glass-card p-4 rounded-2xl flex flex-col gap-3 mt-1 active:scale-[0.98] transition-transform cursor-pointer">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[10px] font-bold text-primary uppercase tracking-[0.1em] block mb-1">Active Line</span>
+                    <div className="flex items-center gap-1.5 text-foreground">
+                      <h2 className="text-[18px] font-bold">{activeLine}</h2>
+                      <ChevronDown className="h-[18px] w-[18px] text-muted-foreground" />
+                    </div>
+                  </div>
+                  <div className="h-8 w-8 bg-primary/10 text-primary rounded-full flex items-center justify-center">
+                    <Settings className="h-4 w-4" />
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground font-medium">SIP Line • Inbound/Outbound</p>
+                {error && <p className="text-[10px] text-destructive">{error}</p>}
+              </div>
+
+              {/* Secondary Stats */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="glass-card p-3 rounded-2xl flex flex-col gap-1.5">
+                  <Timer className="h-[18px] w-[18px] text-amber-600" />
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Avg Duration</p>
+                  <p className="text-sm font-bold text-foreground">{stats.avgDuration}</p>
+                </div>
+                <div className="glass-card p-3 rounded-2xl flex flex-col gap-1.5">
+                  <Disc className="h-[18px] w-[18px] text-primary" />
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Recordings</p>
+                  <p className="text-sm font-bold text-foreground">{stats.recordings}</p>
+                </div>
+              </div>
+
+              {/* Call Logs Section */}
+              <div className="flex flex-col gap-3 mt-2">
+                <div className="flex justify-between items-center px-1">
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                    <History className="h-[18px] w-[18px] text-primary" /> Recent Calls
+                  </h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setRecentFilter('missed')}
+                      className={cn(
+                        'text-[10px] font-bold px-2 py-1 rounded-md',
+                        recentFilter === 'missed' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                      )}
+                    >
+                      Missed
+                    </button>
+                    <button
+                      onClick={() => setRecentFilter('all')}
+                      className={cn(
+                        'text-[10px] font-bold px-2 py-1 rounded-md',
+                        recentFilter === 'all' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                      )}
+                    >
+                      All
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  {recentLoading ? (
+                    <>
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className="p-3 border border-border/10 bg-white/40 rounded-xl flex items-center gap-3">
+                          <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+                          <div className="flex-1 space-y-2">
+                            <Skeleton className="h-3 w-24 rounded" />
+                            <Skeleton className="h-2 w-16 rounded" />
+                          </div>
+                          <Skeleton className="h-6 w-12 rounded-md" />
+                        </div>
+                      ))}
+                    </>
+                  ) : filteredCalls.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
+                      <Phone className="mb-2 h-8 w-8 opacity-50" />
+                      <p className="text-sm font-medium">No calls found</p>
+                    </div>
+                  ) : (
+                    filteredCalls.map((callItem) => {
+                      const Icon = callItem.type === 'missed' ? PhoneMissed : callItem.type === 'incoming' ? PhoneIncoming : PhoneOutgoing;
+                      const iconColor = callItem.type === 'missed' ? 'text-destructive bg-destructive/10' : callItem.type === 'incoming' ? 'text-green-600 bg-green-100' : 'text-primary bg-primary/10';
+                      return (
+                        <div
+                          key={callItem.id}
+                          className="bg-white/80 p-3 border border-border/10 rounded-xl flex items-center gap-3 active:scale-[0.98] transition-transform cursor-pointer shadow-sm"
+                        >
+                          <div className={cn('h-10 w-10 rounded-full flex items-center justify-center shrink-0', iconColor)}>
+                            <Icon className="h-[18px] w-[18px]" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-bold text-foreground truncate leading-tight">{callItem.name}</h4>
+                            <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">{callItem.phone}</p>
+                          </div>
+                          <div className="text-right flex flex-col items-end shrink-0">
+                            <span className="text-[10px] font-bold text-muted-foreground">{callItem.time}</span>
+                            <div className="flex items-center gap-1 mt-1">
+                              {callItem.recorded && <Play className="h-[10px] w-[10px] text-primary" />}
+                              <span className="text-[10px] font-semibold text-muted-foreground">{callItem.duration}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* View 2: Dialer Keypad */}
+          {mobileTab === 'keypad' && (
+            <div className="flex flex-col items-center w-full px-4 h-full justify-between pb-8 pt-4">
+              {/* Screen Display */}
+              <div className="w-full text-center mb-6">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-2">Manual Entry</p>
+                <div className="w-full h-16 bg-white rounded-2xl flex items-center justify-center px-4 overflow-hidden border border-border/20 shadow-inner">
+                  <span className="text-3xl font-bold text-foreground tracking-wider truncate">{formattedDial}</span>
+                  <span className={cn('ml-1 h-8 w-0.5 bg-primary/30', number.length < 15 && 'animate-pulse')} />
+                </div>
+                {directoryUser ? (
+                  <p className="mt-1 text-xs font-medium text-primary">{directoryUser.name} is an app user — will ring in their browser</p>
+                ) : number.trim().length >= 7 ? (
+                  <p className="mt-1 text-xs text-muted-foreground">External number</p>
+                ) : null}
+              </div>
+
+              {/* Numpad Grid */}
+              <div className="grid grid-cols-3 gap-x-6 gap-y-4 max-w-[280px] w-full mx-auto">
+                {keypad.map((item) => (
+                  <button
+                    key={item.digit}
+                    onClick={() => handleDial(item.digit)}
+                    disabled={!!activeCall}
+                    className={cn(
+                      'dial-pad-btn aspect-square w-full rounded-full bg-white flex flex-col items-center justify-center border border-border/20 shadow-sm transition-all active:scale-95 active:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50'
+                    )}
+                  >
+                    <span className="text-[26px] font-medium text-foreground leading-none">{item.digit}</span>
+                    {item.sub && <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mt-1">{item.sub}</span>}
+                  </button>
+                ))}
+              </div>
+
+              {/* Call Actions */}
+              <div className="mt-8 flex items-center justify-center gap-6 w-full max-w-[280px] mx-auto">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-14 w-14 rounded-2xl bg-white text-muted-foreground border-border/20 shadow-sm hover:bg-muted active:scale-95"
+                  onClick={number ? handleBackspace : handleClear}
+                  disabled={!number}
+                >
+                  <Delete className="h-6 w-6" />
+                </Button>
+                <Button
+                  size="icon"
+                  className="h-20 w-20 rounded-full bg-primary text-primary-foreground shadow-[0_10px_25px_rgba(91,91,214,0.35)] active:scale-90 transition-transform hover:scale-105"
+                  onClick={handleCall}
+                  disabled={!!activeCall || !number.trim()}
+                >
+                  <Phone className="h-8 w-8" fill="currentColor" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-14 w-14 rounded-2xl bg-white text-muted-foreground border-border/20 shadow-sm hover:bg-muted active:scale-95"
+                  disabled
+                >
+                  <Video className="h-6 w-6" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <>
+      <div className="md:hidden">
+        <MobileCalls />
+      </div>
+      <div className="hidden md:block space-y-6">
       {/* Active Line & Settings */}
       <Card className="glass-card">
         <CardContent className="flex flex-col items-start justify-between gap-4 p-6 md:flex-row md:items-center">
@@ -427,6 +693,7 @@ export function Calls() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
