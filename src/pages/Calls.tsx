@@ -177,7 +177,6 @@ export function Calls() {
   }, [activeCall?.speakerOn]);
 
   const activeLine = settings.phoneNumber || telnyxNumber || '+1 (555) 012-3456';
-  const isRegistered = status === 'registered';
 
   const tabs: { id: RecentFilter; label: string }[] = [
     { id: 'all', label: 'All' },
