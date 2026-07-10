@@ -13,7 +13,7 @@ export function MobileBottomNav() {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 z-50 flex h-16 w-full items-center justify-around rounded-t-xl bg-white/90 shadow-[0_-10px_30px_rgba(91,91,214,0.08)] backdrop-blur-xl md:hidden">
+    <nav className="fixed bottom-0 z-50 flex h-16 w-full items-center justify-around rounded-t-xl bg-sky-100/90 shadow-[0_-10px_30px_rgba(91,91,214,0.08)] backdrop-blur-xl md:hidden dark:bg-sky-900/90">
       {items.map((item) => {
         const Icon = item.icon;
         const isActive =
