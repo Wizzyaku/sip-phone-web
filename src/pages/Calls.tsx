@@ -151,7 +151,7 @@ export function Calls() {
     call(number.trim());
   };
 
-  const activeLine = settings.phoneNumber || telnyxNumber || '+1 (555) 012-3456';
+  const activeLine = telnyxNumber || settings.phoneNumber || '+1 (555) 012-3456';
 
   const tabs: { id: RecentFilter; label: string }[] = [
     { id: 'all', label: 'All' },
