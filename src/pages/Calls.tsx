@@ -205,7 +205,7 @@ export function Calls() {
     }, [number]);
 
     return (
-      <div className="flex h-full flex-col gap-0 bg-background">
+      <div className="flex h-full flex-col gap-0 bg-background" style={{ isolation: 'isolate' }}>
         {/* Recents / Keypad View Toggle */}
         <div className="px-4 py-2 shrink-0 bg-background border-b border-border/10">
           <div className="flex bg-muted rounded-xl p-1 shadow-inner">
@@ -231,7 +231,7 @@ export function Calls() {
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto relative flex flex-col w-full pb-4">
+        <div className="flex-1 overflow-y-auto flex flex-col w-full pb-4" style={{ WebkitOverflowScrolling: 'touch' }}>
           {/* View 1: Recents & Logs */}
           {mobileTab === 'recents' && (
             <div className="flex flex-col w-full px-4 gap-4 pb-4 pt-1">
