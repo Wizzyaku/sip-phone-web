@@ -90,3 +90,26 @@ drop trigger if exists sip_credentials_updated_at on public.sip_credentials;
 create trigger sip_credentials_updated_at
   before update on public.sip_credentials
   for each row execute procedure public.handle_updated_at();
+
+-- ------------------------------------------------------------
+-- 3. Phone directory lookup
+--    Lets authenticated users resolve a phone number to another
+--    app user's SIP username for browser-to-browser calls.
+--    Only exposes name and username; password stays private.
+-- ------------------------------------------------------------
+create or replace function public.lookup_user_by_phone(target_phone text)
+returns table(name text, sip_username text) as $$
+declare
+  normalized text;
+begin
+  normalized := regexp_replace(target_phone, '[^0-9]', '', 'g');
+  return query
+    select p.name, s.username as sip_username
+    from public.profiles p
+    join public.sip_credentials s on p.id = s.user_id
+    where regexp_replace(p.phone_number, '[^0-9]', '', 'g') = normalized
+      and p.phone_number is not null
+      and s.username is not null
+    limit 1;
+end;
+$$ language plpgsql security definer;

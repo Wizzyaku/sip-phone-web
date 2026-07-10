@@ -65,6 +65,7 @@ export function useSip() {
   const sipSettings = useAppStore((s) => s.sipSettings);
 
   const timerRef = useRef<number | null>(null);
+  const connectionTimeoutRef = useRef<number | null>(null);
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) {
@@ -86,6 +87,13 @@ export function useSip() {
 
   const handleSession = useCallback((session: Session, direction: 'incoming' | 'outgoing') => {
     const remoteIdentity = session.remoteIdentity?.uri?.toString?.() || 'Unknown';
+
+    const clearConnectionTimeout = () => {
+      if (connectionTimeoutRef.current) {
+        window.clearTimeout(connectionTimeoutRef.current);
+        connectionTimeoutRef.current = null;
+      }
+    };
 
     const updateRemoteStream = () => {
       const pc = getPeerConnection(session);
@@ -122,7 +130,18 @@ export function useSip() {
     session.stateChange.addListener((newState: SessionState) => {
       if (newState === SessionState.Establishing) {
         setActiveCall((prev) => (prev ? { ...prev, status: 'Connecting' } : prev));
+        clearConnectionTimeout();
+        connectionTimeoutRef.current = window.setTimeout(() => {
+          setError('Call timed out while connecting. The recipient may be offline.');
+          try {
+            session.bye();
+          } catch {
+            // ignore cleanup errors
+          }
+          setActiveCall(null);
+        }, 30000);
       } else if (newState === SessionState.Established) {
+        clearConnectionTimeout();
         updateRemoteStream();
         const startTime = new Date().toISOString();
         setActiveCall((prev) => {
@@ -132,6 +151,7 @@ export function useSip() {
           return updated;
         });
       } else if (newState === SessionState.Terminated) {
+        clearConnectionTimeout();
         stopTimer();
         setActiveCall(null);
       }
@@ -153,6 +173,7 @@ export function useSip() {
 
       try {
         const normalized = normalizeTelnyxTarget(target);
+        console.log('[SIP] Normalized call target:', normalized);
         const targetUri = UserAgent.makeURI(normalized);
         if (!targetUri) {
           throw new Error(`Invalid call target: ${normalized}`);
@@ -363,6 +384,10 @@ export function useSip() {
   useEffect(() => {
     return () => {
       stopTimer();
+      if (connectionTimeoutRef.current) {
+        window.clearTimeout(connectionTimeoutRef.current);
+        connectionTimeoutRef.current = null;
+      }
       userAgentRef.current?.stop().catch((err) => console.error('SIP stop error:', err));
     };
   }, [stopTimer]);
@@ -383,9 +408,17 @@ export function useSip() {
 }
 
 function normalizeTelnyxTarget(target: string): string {
-  if (target.startsWith('sip:')) {
-    return target;
+  const trimmed = target.trim();
+  if (trimmed.toLowerCase().startsWith('sip:')) {
+    return trimmed;
   }
-  const digits = target.replace(/[^0-9+]/g, '');
-  return `sip:${digits}@sip.telnyx.com`;
+  if (trimmed.includes('@')) {
+    return `sip:${trimmed}`;
+  }
+  const digits = trimmed.replace(/[^0-9+]/g, '');
+  if (digits && /^\+?\d+$/.test(digits)) {
+    return `sip:${digits}@sip.telnyx.com`;
+  }
+  // Treat as a SIP username for app-to-app calls.
+  return `sip:${trimmed}@sip.telnyx.com`;
 }

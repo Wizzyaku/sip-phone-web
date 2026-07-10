@@ -21,6 +21,7 @@ import { Input } from '../components/ui/input';
 import { Skeleton } from '../components/ui/skeleton';
 import { useSipContext } from '../context/SipContext';
 import { saveSipCredentials } from '../lib/sipCredentials';
+import { lookupUserByPhone, type DirectoryUser } from '../lib/directory';
 import { useAppStore } from '../store/appStore';
 import { cn } from '../lib/utils';
 
@@ -80,6 +81,7 @@ export function Calls() {
     phoneNumber: sipSettings?.phoneNumber || telnyxNumber || '',
   });
   const [number, setNumber] = useState('');
+  const [directoryUser, setDirectoryUser] = useState<DirectoryUser | null>(null);
   const [recentFilter, setRecentFilter] = useState<RecentFilter>('all');
   const [recentLoading, setRecentLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -96,6 +98,20 @@ export function Calls() {
     const timer = window.setTimeout(() => setRecentLoading(false), 1200);
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!number.trim()) {
+      setDirectoryUser(null);
+      return;
+    }
+    lookupUserByPhone(number.trim()).then((user) => {
+      if (!cancelled) setDirectoryUser(user);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [number]);
 
   const prevActiveCallRef = useRef(activeCall);
   useEffect(() => {
@@ -146,9 +162,12 @@ export function Calls() {
   };
   const handleBackspace = () => setNumber((n) => n.slice(0, -1));
   const handleClear = () => setNumber('');
-  const handleCall = () => {
+  const handleCall = async () => {
     if (!number.trim()) return;
-    call(number.trim());
+    const target = directoryUser
+      ? `sip:${directoryUser.sipUsername}@sip.telnyx.com`
+      : number.trim();
+    call(target);
   };
 
   const activeLine = telnyxNumber || settings.phoneNumber || '+1 (555) 012-3456';
@@ -353,6 +372,13 @@ export function Calls() {
                 <span className="truncate text-xl font-semibold tracking-widest text-primary">{number}</span>
                 <span className={cn('ml-1 h-6 w-0.5 bg-primary/30', number.length < 15 && 'animate-pulse')} />
               </div>
+              {directoryUser ? (
+                <p className="mt-1 text-xs font-medium text-primary">
+                  {directoryUser.name} is an app user — will ring in their browser
+                </p>
+              ) : number.trim().length >= 7 ? (
+                <p className="mt-1 text-xs text-muted-foreground">External number</p>
+              ) : null}
             </div>
             <div className="grid w-full max-w-[280px] grid-cols-3 gap-x-4 gap-y-2 sm:gap-x-6 sm:gap-y-3">
               {keypad.map((item) => (
