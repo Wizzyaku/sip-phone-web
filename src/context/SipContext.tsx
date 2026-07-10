@@ -48,22 +48,25 @@ export function SipProvider({ children }: { children: ReactNode }) {
   }, [setSipSettings]);
 
   useEffect(() => {
-    if (sip.activeCall?.remoteStream && remoteAudioRef.current) {
-      remoteAudioRef.current.srcObject = sip.activeCall.remoteStream;
-      remoteAudioRef.current.play().catch(() => {});
-    }
+    const audio = remoteAudioRef.current;
+    if (!audio || !sip.activeCall?.remoteStream) return;
+    audio.srcObject = sip.activeCall.remoteStream;
+    audio.volume = 1;
+    audio.play().catch((err) => {
+      console.warn('[SIP] Audio play failed:', err);
+    });
   }, [sip.activeCall?.remoteStream]);
 
   useEffect(() => {
-    if (remoteAudioRef.current) {
-      remoteAudioRef.current.muted = !sip.activeCall?.speakerOn;
-    }
+    const audio = remoteAudioRef.current;
+    if (!audio) return;
+    audio.muted = !sip.activeCall?.speakerOn;
   }, [sip.activeCall?.speakerOn]);
 
   return (
     <SipContext.Provider value={sip}>
       {children}
-      <audio ref={remoteAudioRef} className="hidden" />
+      <audio ref={remoteAudioRef} className="hidden" autoPlay playsInline />
       <IncomingCallBanner />
     </SipContext.Provider>
   );

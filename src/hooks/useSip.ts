@@ -46,7 +46,6 @@ export interface ActiveCall {
   speakerOn: boolean;
   startTime?: string;
   durationSeconds: number;
-  localStream?: MediaStream;
   remoteStream?: MediaStream;
 }
 
@@ -88,6 +87,28 @@ export function useSip() {
   const handleSession = useCallback((session: Session, direction: 'incoming' | 'outgoing') => {
     const remoteIdentity = session.remoteIdentity?.uri?.toString?.() || 'Unknown';
 
+    const updateRemoteStream = () => {
+      const pc = getPeerConnection(session);
+      if (!pc) return;
+      const stream = new MediaStream();
+      pc.getReceivers().forEach((receiver) => {
+        if (receiver.track && receiver.track.readyState === 'live') {
+          stream.addTrack(receiver.track);
+        }
+      });
+      if (stream.getTracks().length > 0) {
+        setActiveCall((prev) => (prev ? { ...prev, remoteStream: stream } : prev));
+      }
+      pc.ontrack = (event) => {
+        setActiveCall((prev) => {
+          if (!prev) return prev;
+          const current = prev.remoteStream ? prev.remoteStream.clone() : new MediaStream();
+          event.track && current.addTrack(event.track);
+          return { ...prev, remoteStream: current };
+        });
+      };
+    };
+
     setActiveCall({
       session,
       direction,
@@ -102,6 +123,7 @@ export function useSip() {
       if (newState === SessionState.Establishing) {
         setActiveCall((prev) => (prev ? { ...prev, status: 'Connecting' } : prev));
       } else if (newState === SessionState.Established) {
+        updateRemoteStream();
         const startTime = new Date().toISOString();
         setActiveCall((prev) => {
           if (!prev) return prev;
@@ -115,14 +137,7 @@ export function useSip() {
       }
     });
 
-    const pc = getPeerConnection(session);
-    if (pc) {
-      pc.ontrack = (event) => {
-        setActiveCall((prev) =>
-          prev ? { ...prev, remoteStream: event.streams[0] } : prev
-        );
-      };
-    }
+    updateRemoteStream();
   }, [startTimer, stopTimer]);
 
   const callInternal = useCallback(
@@ -137,9 +152,6 @@ export function useSip() {
       }
 
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-        setActiveCall((prev) => (prev ? { ...prev, localStream: stream } : prev));
-
         const normalized = normalizeTelnyxTarget(target);
         const targetUri = UserAgent.makeURI(normalized);
         if (!targetUri) {
