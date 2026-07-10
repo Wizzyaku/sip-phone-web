@@ -38,7 +38,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   }, [open]);
 
   return (
-    <header className="fixed top-0 right-0 z-30 flex h-16 w-full items-center justify-between border-b border-white/20 bg-sky-100/90 px-4 backdrop-blur-md dark:bg-sky-900/90 lg:w-[calc(100%-280px)] lg:px-8">
+    <header className="fixed top-0 right-0 z-30 flex h-16 w-full items-center justify-between border-b border-white/20 bg-sky-100 px-4 dark:bg-sky-900 md:bg-sky-100/90 md:backdrop-blur-md md:dark:bg-sky-900/90 lg:w-[calc(100%-280px)] lg:px-8">
       <div className="flex flex-1 items-center gap-4">
         <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenuClick}>
           <Menu className="h-5 w-5" />

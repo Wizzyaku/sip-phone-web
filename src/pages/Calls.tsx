@@ -205,9 +205,9 @@ export function Calls() {
     }, [number]);
 
     return (
-      <div className="flex h-full flex-col gap-0 overflow-hidden bg-background">
+      <div className="flex h-full flex-col gap-0 bg-background">
         {/* Recents / Keypad View Toggle */}
-        <div className="px-4 py-2 shrink-0 bg-background z-10 border-b border-border/10">
+        <div className="px-4 py-2 shrink-0 bg-background border-b border-border/10">
           <div className="flex bg-muted rounded-xl p-1 shadow-inner">
             <button
               onClick={() => setMobileTab('recents')}
@@ -236,7 +236,7 @@ export function Calls() {
           {mobileTab === 'recents' && (
             <div className="flex flex-col w-full px-4 gap-4 pb-4 pt-1">
               {/* Current Active Number Selector */}
-              <div className="bg-white p-4 rounded-2xl border border-border/10 shadow-sm flex flex-col gap-3 mt-1 active:scale-[0.98] transition-transform cursor-pointer">
+              <div className="bg-white p-4 rounded-2xl border border-border/10 shadow-sm flex flex-col gap-3 mt-1 cursor-pointer">
                 <div className="flex justify-between items-start">
                   <div>
                     <span className="text-[10px] font-bold text-primary uppercase tracking-[0.1em] block mb-1">Active Line</span>
@@ -321,7 +321,7 @@ export function Calls() {
                       return (
                         <div
                           key={callItem.id}
-                          className="bg-white p-3 border border-border/10 rounded-xl flex items-center gap-3 active:scale-[0.98] transition-transform cursor-pointer shadow-sm"
+                          className="bg-white p-3 border border-border/10 rounded-xl flex items-center gap-3 cursor-pointer shadow-sm"
                         >
                           <div className={cn('h-10 w-10 rounded-full flex items-center justify-center shrink-0', iconColor)}>
                             <Icon className="h-[18px] w-[18px]" />
