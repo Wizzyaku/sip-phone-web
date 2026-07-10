@@ -15,7 +15,9 @@ import { useAppStore, type SipSettings } from '../store/appStore';
 // browsers require it when the peer connection is in the default
 // rtcp-mux-required mode. Inject the attribute into remote descriptions that
 // are missing it so calls can proceed.
-const originalSetRemoteDescription = RTCPeerConnection.prototype.setRemoteDescription;
+const originalSetRemoteDescription = RTCPeerConnection.prototype.setRemoteDescription as (
+  description: RTCSessionDescriptionInit | RTCSessionDescription
+) => Promise<void>;
 RTCPeerConnection.prototype.setRemoteDescription = function (
   description: RTCSessionDescriptionInit | RTCSessionDescription
 ): Promise<void> {
