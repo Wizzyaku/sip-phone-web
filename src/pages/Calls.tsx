@@ -234,114 +234,83 @@ export function Calls() {
         <div className="flex-1 overflow-y-auto flex flex-col w-full pb-4" style={{ WebkitOverflowScrolling: 'touch' }}>
           {/* View 1: Recents & Logs */}
           {mobileTab === 'recents' && (
-            <div className="flex flex-col w-full px-4 gap-4 pb-4 pt-1">
-              {/* Current Active Number Selector */}
-              <div className="bg-white p-4 rounded-2xl border border-border/10 shadow-sm flex flex-col gap-3 mt-1 cursor-pointer">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] font-bold text-primary uppercase tracking-[0.1em] block mb-1">Active Line</span>
-                    <div className="flex items-center gap-1.5 text-foreground">
-                      <h2 className="text-[18px] font-bold">{activeLine}</h2>
-                      <ChevronDown className="h-[18px] w-[18px] text-muted-foreground" />
-                    </div>
-                  </div>
-                  <div className="h-8 w-8 bg-primary/10 text-primary rounded-full flex items-center justify-center">
-                    <Settings className="h-4 w-4" />
-                  </div>
+            <div className="flex flex-col gap-4 px-4 pt-3">
+              {/* Active line & filter */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-wider">Active Line</p>
+                  <p className="truncate text-sm font-semibold text-foreground">{activeLine}</p>
                 </div>
-                <p className="text-[11px] text-muted-foreground font-medium">SIP Line • Inbound/Outbound</p>
-                {error && <p className="text-[10px] text-destructive">{error}</p>}
-              </div>
-
-              {/* Secondary Stats */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white p-3 rounded-2xl border border-border/10 shadow-sm flex flex-col gap-1.5">
-                  <Timer className="h-[18px] w-[18px] text-amber-600" />
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Avg Duration</p>
-                  <p className="text-sm font-bold text-foreground">{stats.avgDuration}</p>
-                </div>
-                <div className="bg-white p-3 rounded-2xl border border-border/10 shadow-sm flex flex-col gap-1.5">
-                  <Disc className="h-[18px] w-[18px] text-primary" />
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Recordings</p>
-                  <p className="text-sm font-bold text-foreground">{stats.recordings}</p>
+                <div className="flex shrink-0 gap-1 rounded-lg bg-muted p-1">
+                  <button
+                    onClick={() => setRecentFilter('all')}
+                    className={cn(
+                      'rounded-md px-2.5 py-1 text-[10px] font-bold transition-all',
+                      recentFilter === 'all' ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground'
+                    )}
+                  >
+                    All
+                  </button>
+                  <button
+                    onClick={() => setRecentFilter('missed')}
+                    className={cn(
+                      'rounded-md px-2.5 py-1 text-[10px] font-bold transition-all',
+                      recentFilter === 'missed' ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground'
+                    )}
+                  >
+                    Missed
+                  </button>
                 </div>
               </div>
 
-              {/* Call Logs Section */}
-              <div className="flex flex-col gap-3 mt-2">
-                <div className="flex justify-between items-center px-1">
-                  <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                    <History className="h-[18px] w-[18px] text-primary" /> Recent Calls
-                  </h3>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setRecentFilter('missed')}
-                      className={cn(
-                        'text-[10px] font-bold px-2 py-1 rounded-md',
-                        recentFilter === 'missed' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
-                      )}
-                    >
-                      Missed
-                    </button>
-                    <button
-                      onClick={() => setRecentFilter('all')}
-                      className={cn(
-                        'text-[10px] font-bold px-2 py-1 rounded-md',
-                        recentFilter === 'all' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
-                      )}
-                    >
-                      All
-                    </button>
+              {/* Call list */}
+              <div className="flex flex-col gap-2">
+                {recentLoading ? (
+                  <>
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="flex items-center gap-3 rounded-xl bg-muted p-3">
+                        <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-3 w-24 rounded" />
+                          <Skeleton className="h-2 w-16 rounded" />
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                ) : filteredCalls.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
+                    <Phone className="mb-2 h-8 w-8 opacity-50" />
+                    <p className="text-sm font-medium">No calls found</p>
                   </div>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  {recentLoading ? (
-                    <>
-                      {[...Array(3)].map((_, i) => (
-                        <div key={i} className="p-3 border border-border/10 bg-white/40 rounded-xl flex items-center gap-3">
-                          <Skeleton className="h-10 w-10 rounded-full shrink-0" />
-                          <div className="flex-1 space-y-2">
-                            <Skeleton className="h-3 w-24 rounded" />
-                            <Skeleton className="h-2 w-16 rounded" />
-                          </div>
-                          <Skeleton className="h-6 w-12 rounded-md" />
+                ) : (
+                  filteredCalls.map((callItem) => {
+                    const Icon = callItem.type === 'missed' ? PhoneMissed : callItem.type === 'incoming' ? PhoneIncoming : PhoneOutgoing;
+                    const iconBg = callItem.type === 'missed' ? 'bg-destructive/10' : callItem.type === 'incoming' ? 'bg-green-100' : 'bg-primary/10';
+                    const iconColor = callItem.type === 'missed' ? 'text-destructive' : callItem.type === 'incoming' ? 'text-green-600' : 'text-primary';
+                    return (
+                      <button
+                        key={callItem.id}
+                        className="flex w-full items-center gap-3 rounded-xl bg-white p-3 text-left"
+                        onClick={() => {
+                          setNumber(callItem.phone);
+                          setMobileTab('keypad');
+                        }}
+                      >
+                        <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full', iconBg)}>
+                          <Icon className={cn('h-5 w-5', iconColor)} />
                         </div>
-                      ))}
-                    </>
-                  ) : filteredCalls.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-                      <Phone className="mb-2 h-8 w-8 opacity-50" />
-                      <p className="text-sm font-medium">No calls found</p>
-                    </div>
-                  ) : (
-                    filteredCalls.map((callItem) => {
-                      const Icon = callItem.type === 'missed' ? PhoneMissed : callItem.type === 'incoming' ? PhoneIncoming : PhoneOutgoing;
-                      const iconColor = callItem.type === 'missed' ? 'text-destructive bg-destructive/10' : callItem.type === 'incoming' ? 'text-green-600 bg-green-100' : 'text-primary bg-primary/10';
-                      return (
-                        <div
-                          key={callItem.id}
-                          className="bg-white p-3 border border-border/10 rounded-xl flex items-center gap-3 cursor-pointer shadow-sm"
-                        >
-                          <div className={cn('h-10 w-10 rounded-full flex items-center justify-center shrink-0', iconColor)}>
-                            <Icon className="h-[18px] w-[18px]" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-bold text-foreground truncate leading-tight">{callItem.name}</h4>
-                            <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">{callItem.phone}</p>
-                          </div>
-                          <div className="text-right flex flex-col items-end shrink-0">
-                            <span className="text-[10px] font-bold text-muted-foreground">{callItem.time}</span>
-                            <div className="flex items-center gap-1 mt-1">
-                              {callItem.recorded && <Play className="h-[10px] w-[10px] text-primary" />}
-                              <span className="text-[10px] font-semibold text-muted-foreground">{callItem.duration}</span>
-                            </div>
-                          </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-foreground">{callItem.name}</p>
+                          <p className="text-xs text-muted-foreground">{callItem.phone}</p>
                         </div>
-                      );
-                    })
-                  )}
-                </div>
+                        <div className="flex flex-col items-end gap-0.5 shrink-0">
+                          <span className="text-xs text-muted-foreground">{callItem.time}</span>
+                          <span className="text-xs font-medium text-foreground">{callItem.duration}</span>
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
               </div>
             </div>
           )}
