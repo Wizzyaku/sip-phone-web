@@ -5,9 +5,11 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { NotificationToast } from './components/NotificationToast';
 import { Skeleton } from './components/ui/skeleton';
 import { Button } from './components/ui/button';
-import { initTheme } from './store/appStore';
+import { initTheme, useAppStore } from './store/appStore';
 import { useNotifications } from './hooks/useNotifications';
 import { AuthRequired, PublicOnly } from './components/AuthRoute';
+import { supabase } from './lib/supabase';
+import { fetchProfile } from './lib/profile';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Calls = lazy(() => import('./pages/Calls'));
@@ -31,9 +33,39 @@ const pageFallback = (
 );
 
 function AppProviders() {
+  const setUser = useAppStore((s) => s.setUser);
+  const setTelnyxNumber = useAppStore((s) => s.setTelnyxNumber);
+
   useEffect(() => {
     initTheme();
   }, []);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const profile = await fetchProfile();
+      if (profile) {
+        setUser({
+          name: profile.name,
+          email: profile.email,
+          avatar: profile.avatar,
+          bio: profile.bio,
+        });
+        setTelnyxNumber(profile.phoneNumber);
+      }
+    };
+
+    loadProfile();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        loadProfile();
+      }
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, [setUser, setTelnyxNumber]);
 
   useNotifications();
 

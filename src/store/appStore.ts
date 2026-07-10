@@ -264,8 +264,6 @@ export const useAppStore = create<AppState>()(
       name: 'app-storage',
       partialize: (state) => ({
         theme: state.theme,
-        user: state.user,
-        telnyxNumber: state.telnyxNumber,
       }),
     }
   )

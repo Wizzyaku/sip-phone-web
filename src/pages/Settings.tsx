@@ -29,6 +29,7 @@ import { Input } from '../components/ui/input';
 import { useAppStore } from '../store/appStore';
 import { cn } from '../lib/utils';
 import { supabase } from '../lib/supabase';
+import { saveProfile } from '../lib/profile';
 
 const tabs = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -80,8 +81,10 @@ export function Settings() {
 
   const accountNumber = '#PRO-8892-XKB-001';
 
-  const handleSave = () => {
-    setUser({ ...user, ...draft, avatar: getInitials(draft.name) });
+  const handleSave = async () => {
+    const updatedUser = { ...user, ...draft, avatar: getInitials(draft.name) };
+    setUser(updatedUser);
+    await saveProfile(updatedUser, telnyxNumber);
     setSaved(true);
     setEditingProfile(false);
     window.setTimeout(() => setSaved(false), 3000);
@@ -115,8 +118,10 @@ export function Settings() {
     }
   };
 
-  const handleSaveNumber = () => {
-    setTelnyxNumber(numberDraft.trim() || null);
+  const handleSaveNumber = async () => {
+    const number = numberDraft.trim() || null;
+    setTelnyxNumber(number);
+    await saveProfile(user, number);
     setVerifyStatus({ type: 'success', message: 'Sender number saved.' });
     window.setTimeout(() => setVerifyStatus(null), 3000);
   };
