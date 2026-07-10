@@ -55,6 +55,12 @@ export interface CallState {
   error?: string;
 }
 
+export interface SipSettings {
+  username: string;
+  password: string;
+  phoneNumber: string;
+}
+
 export interface MediaUpload {
   id: string;
   file: File;
@@ -69,6 +75,7 @@ interface AppState {
   theme: 'light' | 'dark' | 'system';
   resolvedTheme: 'light' | 'dark';
   telnyxNumber: string | null;
+  sipSettings: SipSettings | null;
   notifications: Notification[];
   messages: Message[];
   conversations: Conversation[];
@@ -78,6 +85,7 @@ interface AppState {
   setUser: (user: User) => void;
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   setTelnyxNumber: (number: string | null) => void;
+  setSipSettings: (settings: SipSettings | null) => void;
   addNotification: (notification: Omit<Notification, 'id' | 'read' | 'createdAt'>) => string;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
@@ -153,6 +161,7 @@ export const useAppStore = create<AppState>()(
       theme: 'system',
       resolvedTheme: 'light',
       telnyxNumber: null,
+      sipSettings: null,
       notifications: [],
       messages: [],
       conversations: [],
@@ -171,6 +180,7 @@ export const useAppStore = create<AppState>()(
         set({ theme, resolvedTheme });
       },
       setTelnyxNumber: (telnyxNumber) => set({ telnyxNumber }),
+      setSipSettings: (sipSettings) => set({ sipSettings }),
       addNotification: (notification) => {
         const now = new Date().toISOString();
         const existing = get().notifications.find(
@@ -252,7 +262,12 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'app-storage',
-      partialize: (state) => ({ theme: state.theme, user: state.user, telnyxNumber: state.telnyxNumber }),
+      partialize: (state) => ({
+        theme: state.theme,
+        user: state.user,
+        telnyxNumber: state.telnyxNumber,
+        sipSettings: state.sipSettings,
+      }),
     }
   )
 );

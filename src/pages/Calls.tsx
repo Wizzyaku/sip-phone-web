@@ -84,10 +84,12 @@ export function Calls() {
   const telnyxNumber = useAppStore((s) => s.telnyxNumber);
 
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
+  const sipSettings = useAppStore((s) => s.sipSettings);
+  const setSipSettings = useAppStore((s) => s.setSipSettings);
   const [settings, setSettings] = useState({
-    username: '',
-    password: '',
-    phoneNumber: telnyxNumber || '',
+    username: sipSettings?.username || '',
+    password: sipSettings?.password || '',
+    phoneNumber: sipSettings?.phoneNumber || telnyxNumber || '',
   });
   const [number, setNumber] = useState('');
   const [recentFilter, setRecentFilter] = useState<RecentFilter>('all');
@@ -300,7 +302,10 @@ export function Calls() {
             </div>
             <div className="flex items-center gap-3">
               <Button
-                onClick={() => register(settings)}
+                onClick={() => {
+                  setSipSettings(settings);
+                  register(settings);
+                }}
                 disabled={status === 'connecting' || status === 'registered'}
               >
                 {status === 'connecting' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -465,7 +470,7 @@ export function Calls() {
                 size="icon"
                 className="h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 sm:h-16 sm:w-16"
                 onClick={handleCall}
-                disabled={!isRegistered || !!activeCall || !number.trim()}
+                disabled={!!activeCall || !number.trim()}
               >
                 <Phone className="h-6 w-6 sm:h-7 sm:w-7" />
               </Button>

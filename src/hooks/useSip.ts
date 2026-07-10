@@ -9,14 +9,9 @@ import {
   UserAgent,
 } from 'sip.js';
 import type { UserAgentOptions } from 'sip.js';
+import { useAppStore, type SipSettings } from '../store/appStore';
 
 export type SipStatus = 'idle' | 'connecting' | 'connected' | 'registered' | 'disconnected' | 'error';
-
-export interface SipSettings {
-  username: string;
-  password: string;
-  phoneNumber: string;
-}
 
 export interface ActiveCall {
   session: Session;
@@ -40,6 +35,7 @@ export function useSip() {
   const userAgentRef = useRef<UserAgent | null>(null);
   const registererRef = useRef<Registerer | null>(null);
   const registeredRef = useRef(false);
+  const pendingCallTargetRef = useRef<string | null>(null);
   const [status, setStatus] = useState<SipStatus>('idle');
   const [activeCall, setActiveCall] = useState<ActiveCall | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +100,44 @@ export function useSip() {
     }
   }, [startTimer, stopTimer]);
 
+  const callInternal = useCallback(
+    async (target: string) => {
+      if (!userAgentRef.current) {
+        setError('SIP client not initialized');
+        return;
+      }
+      if (!registeredRef.current) {
+        setError('Not registered');
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        setActiveCall((prev) => (prev ? { ...prev, localStream: stream } : prev));
+
+        const normalized = normalizeTelnyxTarget(target);
+        const targetUri = UserAgent.makeURI(normalized);
+        if (!targetUri) {
+          throw new Error(`Invalid call target: ${normalized}`);
+        }
+
+        const inviter = new Inviter(userAgentRef.current, targetUri, {
+          sessionDescriptionHandlerOptions: {
+            constraints: { audio: true, video: false },
+          },
+        });
+
+        handleSession(inviter, 'outgoing');
+        await inviter.invite();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Could not start call');
+        setActiveCall(null);
+        console.error('SIP call error:', err);
+      }
+    },
+    [handleSession]
+  );
+
   const register = useCallback(async (settings: SipSettings) => {
     try {
       setError(null);
@@ -163,9 +197,17 @@ export function useSip() {
         if (newState === RegistererState.Registered) {
           setStatus('registered');
           registeredRef.current = true;
+          const target = pendingCallTargetRef.current;
+          pendingCallTargetRef.current = null;
+          if (target) {
+            window.setTimeout(() => {
+              callInternal(target);
+            }, 0);
+          }
         } else if (newState === RegistererState.Unregistered) {
           setStatus('disconnected');
           registeredRef.current = false;
+          pendingCallTargetRef.current = null;
         }
       });
 
@@ -180,7 +222,7 @@ export function useSip() {
       setError(err instanceof Error ? err.message : 'Unknown SIP error');
       console.error('SIP registration error:', err);
     }
-  }, [handleSession]);
+  }, [handleSession, callInternal]);
 
   const unregister = useCallback(async () => {
     try {
@@ -195,36 +237,27 @@ export function useSip() {
 
   const call = useCallback(
     async (target: string) => {
-      if (!userAgentRef.current || !registeredRef.current) {
-        setError('Not registered');
+      const settings = useAppStore.getState().sipSettings;
+
+      if (!settings) {
+        setError('SIP credentials not configured. Open SIP Settings and enter your credentials.');
         return;
       }
 
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-        setActiveCall((prev) => (prev ? { ...prev, localStream: stream } : prev));
-
-        const normalized = normalizeTelnyxTarget(target);
-        const targetUri = UserAgent.makeURI(normalized);
-        if (!targetUri) {
-          throw new Error(`Invalid call target: ${normalized}`);
-        }
-
-        const inviter = new Inviter(userAgentRef.current, targetUri, {
-          sessionDescriptionHandlerOptions: {
-            constraints: { audio: true, video: false },
-          },
-        });
-
-        handleSession(inviter, 'outgoing');
-        await inviter.invite();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Could not start call');
-        setActiveCall(null);
-        console.error('SIP call error:', err);
+      if (registeredRef.current && userAgentRef.current) {
+        await callInternal(target);
+        return;
       }
+
+      if (status === 'connecting') {
+        pendingCallTargetRef.current = target;
+        return;
+      }
+
+      pendingCallTargetRef.current = target;
+      await register(settings);
     },
-    [handleSession]
+    [callInternal, register, status]
   );
 
   const hangup = useCallback(() => {
@@ -283,6 +316,13 @@ export function useSip() {
     }
     setActiveCall(null);
   }, [activeCall]);
+
+  useEffect(() => {
+    const settings = useAppStore.getState().sipSettings;
+    if (settings && status === 'idle') {
+      register(settings);
+    }
+  }, [register, status]);
 
   useEffect(() => {
     return () => {
