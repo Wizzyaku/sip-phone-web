@@ -11,6 +11,28 @@ import {
 import type { UserAgentOptions } from 'sip.js';
 import { useAppStore, type SipSettings } from '../store/appStore';
 
+// Telnyx/FreeSWITCH sometimes sends SDPs without `a=rtcp-mux`, but modern
+// browsers require it when the peer connection is in the default
+// rtcp-mux-required mode. Inject the attribute into remote descriptions that
+// are missing it so calls can proceed.
+const originalSetRemoteDescription = RTCPeerConnection.prototype.setRemoteDescription;
+RTCPeerConnection.prototype.setRemoteDescription = function (
+  description: RTCSessionDescriptionInit | RTCSessionDescription
+): Promise<void> {
+  if (description && description.sdp && !description.sdp.includes('a=rtcp-mux')) {
+    const patchedSdp = description.sdp.replace(/^(m=audio [^\r\n]+)(?:\r?\n)/gm, '$1\r\na=rtcp-mux\r\n');
+    if (patchedSdp !== description.sdp) {
+      console.log('[SIP] Patched remote SDP to add a=rtcp-mux');
+      if (description instanceof RTCSessionDescription) {
+        description = new RTCSessionDescription({ type: description.type, sdp: patchedSdp });
+      } else {
+        description = { ...description, sdp: patchedSdp };
+      }
+    }
+  }
+  return originalSetRemoteDescription.call(this, description);
+};
+
 export type SipStatus = 'idle' | 'connecting' | 'connected' | 'registered' | 'disconnected' | 'error';
 
 export interface ActiveCall {
