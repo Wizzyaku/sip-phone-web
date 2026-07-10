@@ -194,7 +194,11 @@ export function Calls() {
 
   function MobileCalls() {
     const formattedDial = useMemo(() => {
+      const hasPlus = number.startsWith('+');
       const digits = number.replace(/\D/g, '');
+      if (hasPlus) {
+        return '+' + digits;
+      }
       if (digits.length > 6) {
         return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
       }
@@ -317,11 +321,11 @@ export function Calls() {
 
           {/* View 2: Dialer Keypad */}
           {mobileTab === 'keypad' && (
-            <div className="flex flex-col items-center w-full px-4 h-full justify-between pb-8 pt-4">
+            <div className="flex flex-col items-center w-full px-4 h-full justify-between pb-3 pt-2">
               {/* Screen Display */}
-              <div className="w-full text-center mb-6">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-2">Manual Entry</p>
-                <div className="w-full h-16 bg-white rounded-2xl flex items-center justify-center px-4 overflow-hidden border border-border/20 shadow-inner">
+              <div className="w-full text-center mb-3">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-1">Manual Entry</p>
+                <div className="w-full h-14 bg-white rounded-2xl flex items-center justify-center px-4 overflow-hidden border border-border/20 shadow-inner">
                   <span className="text-3xl font-bold text-foreground tracking-wider truncate">{formattedDial}</span>
                   <span className={cn('ml-1 h-8 w-0.5 bg-primary/30', number.length < 15 && 'animate-pulse')} />
                 </div>
@@ -333,7 +337,7 @@ export function Calls() {
               </div>
 
               {/* Numpad Grid */}
-              <div className="grid grid-cols-3 gap-x-6 gap-y-4 max-w-[280px] w-full mx-auto">
+              <div className="grid grid-cols-3 gap-x-4 gap-y-2.5 max-w-[260px] w-full mx-auto">
                 {keypad.map((item) => (
                   <button
                     key={item.digit}
@@ -350,11 +354,11 @@ export function Calls() {
               </div>
 
               {/* Call Actions */}
-              <div className="mt-8 flex items-center justify-center gap-6 w-full max-w-[280px] mx-auto">
+              <div className="mt-4 flex items-center justify-center gap-6 w-full max-w-[260px] mx-auto">
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-14 w-14 rounded-2xl bg-white text-muted-foreground border-border/20 shadow-sm hover:bg-muted active:scale-95"
+                  className="h-12 w-12 rounded-2xl bg-white text-muted-foreground border-border/20 shadow-sm hover:bg-muted active:scale-95"
                   onClick={number ? handleBackspace : handleClear}
                   disabled={!number}
                 >
@@ -362,7 +366,7 @@ export function Calls() {
                 </Button>
                 <Button
                   size="icon"
-                  className="h-20 w-20 rounded-full bg-primary text-primary-foreground shadow-[0_10px_25px_rgba(91,91,214,0.35)] active:scale-90 transition-transform hover:scale-105"
+                  className="h-16 w-16 rounded-full bg-primary text-primary-foreground shadow-[0_10px_25px_rgba(91,91,214,0.35)] active:scale-90 transition-transform hover:scale-105"
                   onClick={handleCall}
                   disabled={!!activeCall || !number.trim()}
                 >
@@ -371,7 +375,7 @@ export function Calls() {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-14 w-14 rounded-2xl bg-white text-muted-foreground border-border/20 shadow-sm hover:bg-muted active:scale-95"
+                  className="h-12 w-12 rounded-2xl bg-white text-muted-foreground border-border/20 shadow-sm hover:bg-muted active:scale-95"
                   disabled
                 >
                   <Video className="h-6 w-6" />
