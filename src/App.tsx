@@ -7,13 +7,20 @@ import { Skeleton } from './components/ui/skeleton';
 import { Button } from './components/ui/button';
 import { initTheme } from './store/appStore';
 import { useNotifications } from './hooks/useNotifications';
+import { AuthRequired, PublicOnly } from './components/AuthRoute';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Calls = lazy(() => import('./pages/Calls'));
 const Messages = lazy(() => import('./pages/Messages'));
 const Contacts = lazy(() => import('./pages/Contacts'));
+const PhoneNumbers = lazy(() => import('./pages/PhoneNumbers'));
+const Billing = lazy(() => import('./pages/Billing'));
+const Usage = lazy(() => import('./pages/Usage'));
 const Settings = lazy(() => import('./pages/Settings'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 
 const pageFallback = (
   <div className="space-y-4 p-4">
@@ -54,17 +61,40 @@ function RouteError() {
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Layout />,
+    element: <AuthRequired />,
     errorElement: <RouteError />,
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: 'dashboard', element: <Dashboard /> },
-      { path: 'calls', element: <Calls /> },
-      { path: 'messages', element: <Messages /> },
-      { path: 'contacts', element: <Contacts /> },
-      { path: 'settings', element: <Settings /> },
-      { path: '*', element: <NotFound /> },
+      {
+        path: '/',
+        element: <Layout />,
+        children: [
+          { index: true, element: <Navigate to="/dashboard" replace /> },
+          { path: 'dashboard', element: <Dashboard /> },
+          { path: 'calls', element: <Calls /> },
+          { path: 'messages', element: <Messages /> },
+          { path: 'contacts', element: <Contacts /> },
+          { path: 'numbers', element: <PhoneNumbers /> },
+          { path: 'billing', element: <Billing /> },
+          { path: 'usage', element: <Usage /> },
+          { path: 'settings', element: <Settings /> },
+          { path: '*', element: <NotFound /> },
+        ],
+      },
     ],
+  },
+  {
+    path: '/',
+    element: <PublicOnly />,
+    errorElement: <RouteError />,
+    children: [
+      { path: 'login', element: <Login /> },
+      { path: 'signup', element: <Signup /> },
+      { path: 'forgot-password', element: <ForgotPassword /> },
+    ],
+  },
+  {
+    path: '*',
+    element: <Navigate to="/login" replace />,
   },
 ]);
 

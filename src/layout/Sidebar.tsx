@@ -1,15 +1,31 @@
-import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Phone, MessageSquare, Contact, Settings, PhoneCall } from 'lucide-react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Smartphone,
+  MessageSquare,
+  Phone,
+  Contact,
+  CreditCard,
+  BarChart3,
+  Settings,
+  HelpCircle,
+  LogOut,
+  PhoneCall,
+} from 'lucide-react';
 import { useAppStore, unreadMessages } from '../store/appStore';
-import { Avatar, AvatarFallback } from '../components/ui/avatar';
+import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { cn } from '../lib/utils';
+import { supabase } from '../lib/supabase';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/' },
-  { id: 'calls', label: 'Calls', icon: Phone, path: '/calls' },
+  { id: 'numbers', label: 'Phone Numbers', icon: Smartphone, path: '/numbers' },
   { id: 'messages', label: 'Messages', icon: MessageSquare, path: '/messages' },
+  { id: 'calls', label: 'Calls', icon: Phone, path: '/calls' },
   { id: 'contacts', label: 'Contacts', icon: Contact, path: '/contacts' },
+  { id: 'billing', label: 'Billing', icon: CreditCard, path: '/billing' },
+  { id: 'usage', label: 'Usage', icon: BarChart3, path: '/usage' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
 ] as const;
 
@@ -18,20 +34,28 @@ interface SidebarProps {
 }
 
 export function Sidebar({ onNavigate }: SidebarProps) {
-  const user = useAppStore((s) => s.user);
+  const navigate = useNavigate();
   const unreadMsgCount = useAppStore(unreadMessages);
   const location = useLocation();
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
+
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r bg-card">
-      <div className="flex h-16 items-center gap-3 border-b px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <PhoneCall className="h-5 w-5" />
+    <aside className="fixed left-0 top-0 z-40 flex h-screen w-[280px] flex-col border-r border-white/20 bg-white/20 py-8 px-6 backdrop-blur-xl">
+      <div className="mb-8 px-2">
+        <div className="flex items-center gap-2 text-primary">
+          <PhoneCall className="h-7 w-7" />
+          <div>
+            <h1 className="text-xl font-bold leading-tight">CloudTalk</h1>
+            <p className="text-xs text-muted-foreground">Enterprise Tier</p>
+          </div>
         </div>
-        <span className="text-lg font-semibold">CloudTalk</span>
       </div>
 
-      <nav className="flex-1 space-y-1 p-4">
+      <nav className="flex-1 flex flex-col gap-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
@@ -45,16 +69,14 @@ export function Sidebar({ onNavigate }: SidebarProps) {
               to={item.path}
               onClick={onNavigate}
               className={cn(
-                'flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                'group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  ? 'active-nav-indicator bg-primary/5 text-primary'
+                  : 'text-muted-foreground hover:bg-primary/10 hover:text-foreground'
               )}
             >
-              <div className="flex items-center gap-3">
-                <Icon className="h-5 w-5" />
-                {item.label}
-              </div>
+              <Icon className="h-5 w-5" />
+              <span className="flex-1">{item.label}</span>
               {badgeCount > 0 && (
                 <Badge variant="secondary" className="h-5 min-w-[1.25rem] justify-center px-1.5 text-[10px]">
                   {badgeCount}
@@ -65,16 +87,28 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         })}
       </nav>
 
-      <div className="border-t p-4">
-        <div className="flex items-center gap-3 rounded-lg border bg-background p-3">
-          <Avatar className="h-9 w-9 bg-primary text-primary-foreground">
-            <AvatarFallback>{user.avatar}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium">{user.name}</p>
-            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-          </div>
-        </div>
+      <div className="mt-auto flex flex-col gap-1 border-t border-white/20 pt-6">
+        <Button className="w-full rounded-xl shadow-lg shadow-primary/20 mb-4" onClick={() => navigate('/settings')}>
+          Buy Number
+        </Button>
+        <NavLink
+          to="/settings"
+          onClick={onNavigate}
+          className={cn(
+            'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-primary/10',
+            location.pathname.startsWith('/settings') && 'text-primary bg-primary/5'
+          )}
+        >
+          <HelpCircle className="h-5 w-5" />
+          Help
+        </NavLink>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+        >
+          <LogOut className="h-5 w-5" />
+          Sign Out
+        </button>
       </div>
     </aside>
   );

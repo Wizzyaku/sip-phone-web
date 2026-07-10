@@ -1,193 +1,256 @@
 import { useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Phone, MessageSquare, Clock, Users, TrendingUp, TrendingDown } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
+import {
+  Wallet,
+  Coins,
+  Phone,
+  PlusCircle,
+  Zap,
+  Grid3X3,
+  PhoneIncoming,
+  MessageCircle,
+  PhoneMissed,
+  Info,
+} from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { Skeleton } from '../components/ui/skeleton';
 import { useAppStore } from '../store/appStore';
 import { cn } from '../lib/utils';
-
-const statMeta = [
-  { label: 'Total Calls', value: '24', change: '+12%', icon: Phone, trend: 'up' },
-  { label: 'Messages', value: '142', change: '+8%', icon: MessageSquare, trend: 'up' },
-  { label: 'Avg. Duration', value: '4m 12s', change: '-2%', icon: Clock, trend: 'down' },
-  { label: 'Contacts', value: '38', change: '+4', icon: Users, trend: 'up' },
-] as const;
 
 function formatTime(date: string): string {
   return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 function buildTrend(messages: ReturnType<typeof useAppStore.getState>['messages']) {
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (6 - i));
-    d.setHours(0, 0, 0, 0);
-    return d;
-  });
-  const counts = days.map((day) => {
-    const next = new Date(day);
-    next.setDate(next.getDate() + 1);
+  const weeks = Array.from({ length: 12 }, (_, i) => i);
+  const counts = weeks.map((weekOffset) => {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - (11 - weekOffset) * 7);
+    const nextWeek = new Date(weekAgo);
+    nextWeek.setDate(nextWeek.getDate() + 7);
     return messages.filter((m) => {
       const t = new Date(m.createdAt);
-      return t >= day && t < next;
+      return t >= weekAgo && t < nextWeek;
     }).length;
   });
   const max = Math.max(1, ...counts);
-  return { labels: days.map((d) => d.toLocaleDateString(undefined, { weekday: 'short' })), counts, max };
+  return { counts, max };
 }
 
 export function Dashboard() {
   const messages = useAppStore((s) => s.messages);
   const conversations = useAppStore((s) => s.conversations);
+  const user = useAppStore((s) => s.user);
   const navigate = useNavigate();
-  const loading = false;
-
-  const stats = useMemo(() => {
-    return statMeta.map((s) => ({
-      ...s,
-      value: s.label === 'Messages' ? String(messages.length) : s.label === 'Contacts' ? String(conversations.length) : s.value,
-    }));
-  }, [messages.length, conversations.length]);
 
   const trend = useMemo(() => buildTrend(messages), [messages]);
+
   const activity = useMemo(() => {
-    return messages.slice(0, 8).map((m) => ({
-      id: m.id,
-      title: m.direction === 'inbound' ? `Message from ${m.from || m.conversationId}` : `Sent to ${m.to || m.conversationId}`,
-      description: m.type === 'text' ? m.body : `Sent ${m.type}${m.mediaName ? `: ${m.mediaName}` : ''}`,
-      time: formatTime(m.createdAt),
-      type: m.direction === 'inbound' ? 'call' : 'message',
-    }));
+    return messages.slice(0, 6).map((m, i) => {
+      const isInbound = m.direction === 'inbound';
+      const missed = i === 2;
+      return {
+        id: m.id,
+        title: isInbound ? m.from || m.conversationId : m.to || m.conversationId,
+        description: missed ? 'Missed call' : isInbound ? 'Incoming message' : 'Outgoing call',
+        time: formatTime(m.createdAt),
+        type: missed ? 'missed' : isInbound ? 'call' : 'message',
+      };
+    });
   }, [messages]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Overview of your communications activity.</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate('/calls')}>New Call</Button>
-          <Button onClick={() => navigate('/messages')}>New Message</Button>
-        </div>
-      </div>
+    <div className="space-y-8 pt-4">
+      <section>
+        <h2 className="text-3xl font-bold text-foreground">Account Overview</h2>
+        <p className="text-lg text-muted-foreground">
+          Welcome back, {user.name}. Your enterprise communications are performing optimally.
+        </p>
+      </section>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {loading ? (
-          <>
-            <Skeleton className="h-28" />
-            <Skeleton className="h-28" />
-            <Skeleton className="h-28" />
-            <Skeleton className="h-28" />
-          </>
-        ) : (
-          stats.map((stat) => {
-            const Icon = stat.icon;
-            const TrendIcon = stat.trend === 'up' ? TrendingUp : TrendingDown;
-            return (
-              <Card key={stat.label}>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardDescription className="text-sm font-medium">{stat.label}</CardDescription>
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stat.value}</div>
-                  <p className={cn('flex items-center gap-1 text-xs', stat.trend === 'up' ? 'text-emerald-600' : 'text-red-500')}>
-                    <TrendIcon className="h-3 w-3" />
-                    {stat.change} from last week
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })
-        )}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Messages Trend</CardTitle>
-            <CardDescription>Daily message volume over the last 7 days.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {trend.counts.every((c) => c === 0) ? (
-              <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-                No message data yet.
-              </div>
-            ) : (
-              <div className="flex h-48 items-end gap-2">
-                {trend.counts.map((count, i) => (
-                  <div key={i} className="flex flex-1 flex-col items-center gap-2">
-                    <div
-                      className="w-full rounded-t bg-primary/80 transition-all hover:bg-primary"
-                      style={{ height: `${(count / trend.max) * 100}%` }}
-                    />
-                    <span className="text-xs text-muted-foreground">{trend.labels[i]}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Frequently used actions.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-3">
-            <Button variant="outline" className="justify-start" onClick={() => navigate('/calls')}>
-              <Phone className="mr-2 h-4 w-4 text-primary" />
-              Start a call
-            </Button>
-            <Button variant="outline" className="justify-start" onClick={() => navigate('/messages')}>
-              <MessageSquare className="mr-2 h-4 w-4 text-primary" />
-              Send message
-            </Button>
-            <Button variant="outline" className="justify-start" onClick={() => navigate('/contacts')}>
-              <Users className="mr-2 h-4 w-4 text-primary" />
-              Add contact
-            </Button>
-            <Button variant="outline" className="justify-start" onClick={() => navigate('/messages')}>
-              <Clock className="mr-2 h-4 w-4 text-primary" />
-              View history
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Activity Feed</CardTitle>
-          <CardDescription>Recent calls and messages across your account.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {activity.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              <p className="font-medium">No recent activity</p>
-              <p className="text-xs">Start a call or send a message to see activity here.</p>
+      {/* KPI Bento Grid */}
+      <section className="grid grid-cols-1 gap-6 sm:grid-cols-3 items-start">
+        {/* Balance */}
+        <div className="glass-card rounded-xl p-3 flex flex-col gap-2 hover:-translate-y-1">
+          <div className="flex justify-between items-start">
+            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+              <Wallet className="h-5 w-5" />
             </div>
-          ) : (
-            activity.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded-lg border p-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    {item.type === 'call' ? <Phone className="h-4 w-4" /> : <MessageSquare className="h-4 w-4" />}
+            <span className="text-xs font-bold text-primary">+2.4% vs last mo</span>
+          </div>
+          <div>
+            <p className="text-primary/80 text-sm font-medium">Current Balance</p>
+            <p className="text-2xl font-bold text-primary">$240.50</p>
+          </div>
+        </div>
+
+        {/* Tokens */}
+        <div className="glass-card rounded-xl p-3 flex flex-col gap-2 hover:-translate-y-1">
+          <div className="flex justify-between items-start">
+            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+              <Coins className="h-5 w-5" />
+            </div>
+            <span className="text-xs font-bold text-primary">1,200 used today</span>
+          </div>
+          <div>
+            <p className="text-primary/80 text-sm font-medium">Token Balance</p>
+            <p className="text-2xl font-bold text-primary">12,000</p>
+          </div>
+        </div>
+
+        {/* Active Numbers */}
+        <div className="glass-card rounded-xl p-3 flex flex-col gap-2 hover:-translate-y-1">
+          <div className="flex justify-between items-start">
+            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+              <Phone className="h-5 w-5" />
+            </div>
+          </div>
+          <div>
+            <p className="text-primary/80 text-sm font-medium">Active Numbers</p>
+            <p className="text-2xl font-bold text-primary">{Math.max(1, conversations.length)}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Actions */}
+      <section>
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Quick Actions</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <button
+            onClick={() => navigate('/settings')}
+            className="glass-card rounded-xl p-5 flex flex-col items-center justify-center gap-3 text-center hover:-translate-y-1 transition-all"
+          >
+            <div className="p-3 bg-primary/10 rounded-xl text-primary">
+              <PlusCircle className="h-7 w-7" />
+            </div>
+            <span className="font-semibold text-sm text-foreground">Buy Number</span>
+          </button>
+          <button
+            onClick={() => navigate('/settings')}
+            className="glass-card rounded-xl p-5 flex flex-col items-center justify-center gap-3 text-center hover:-translate-y-1 transition-all"
+          >
+            <div className="p-3 bg-primary/10 rounded-xl text-primary">
+              <Zap className="h-7 w-7" />
+            </div>
+            <span className="font-semibold text-sm text-foreground">Recharge Tokens</span>
+          </button>
+          <button
+            onClick={() => navigate('/calls')}
+            className="glass-card rounded-xl p-5 flex flex-col items-center justify-center gap-3 text-center hover:-translate-y-1 transition-all"
+          >
+            <div className="p-3 bg-primary/10 rounded-xl text-primary">
+              <Grid3X3 className="h-7 w-7" />
+            </div>
+            <span className="font-semibold text-sm text-foreground">Open Dialer</span>
+          </button>
+        </div>
+      </section>
+
+      {/* Main Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Usage Chart */}
+        <section className="lg:col-span-8 glass-card rounded-2xl p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="text-xl font-bold text-foreground">Consumption Analytics</h3>
+              <p className="text-muted-foreground">Call minutes and SMS over last 30 days</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="default" size="sm" className="rounded-full">
+                30 Days
+              </Button>
+              <Button variant="outline" size="sm" className="rounded-full">
+                90 Days
+              </Button>
+            </div>
+          </div>
+
+          <div className="w-full h-72 relative flex items-end justify-between px-2 pt-10">
+            <div className="absolute inset-x-0 top-10 bottom-0 flex flex-col justify-between pointer-events-none opacity-20">
+              <div className="border-t border-border" />
+              <div className="border-t border-border" />
+              <div className="border-t border-border" />
+              <div className="border-t border-border" />
+            </div>
+            <div className="flex-1 flex items-end justify-around gap-2 h-full z-10">
+              {trend.counts.map((count, i) => {
+                const height = trend.max ? `${(count / trend.max) * 100}%` : '5%';
+                return (
+                  <div
+                    key={i}
+                    className="w-6 bg-primary/40 rounded-t-sm hover:bg-primary/70 transition-all"
+                    style={{ height }}
+                    title={`Week ${i + 1}: ${count}`}
+                  />
+                );
+              })}
+            </div>
+          </div>
+          <div className="mt-6 flex justify-around text-xs text-muted-foreground font-medium">
+            <span>Week 1</span>
+            <span>Week 2</span>
+            <span>Week 3</span>
+            <span>Week 4</span>
+          </div>
+        </section>
+
+        {/* Recent Activity */}
+        <section className="lg:col-span-4 glass-card rounded-2xl p-6 flex flex-col h-full">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-foreground">Recent Activity</h3>
+            <Button variant="link" className="h-auto p-0 text-primary font-bold" onClick={() => navigate('/messages')}>
+              View All
+            </Button>
+          </div>
+
+          <div className="flex flex-col gap-3 overflow-y-auto max-h-[220px] pr-2">
+            {activity.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No recent activity</p>
+            ) : (
+              activity.map((item) => {
+                const iconMap = {
+                  call: { icon: PhoneIncoming, color: 'text-primary bg-primary/10' },
+                  message: { icon: MessageCircle, color: 'text-secondary bg-secondary/10' },
+                  missed: { icon: PhoneMissed, color: 'text-destructive bg-destructive/10' },
+                };
+                const meta = iconMap[item.type as keyof typeof iconMap] || iconMap.call;
+                const Icon = meta.icon;
+                const unread = item.type === 'message';
+                return (
+                  <div
+                    key={item.id}
+                    className={cn(
+                      'flex items-center gap-4 p-3 rounded-xl hover:bg-muted transition-colors cursor-pointer group',
+                      unread && 'border-l-4 border-secondary bg-secondary/5'
+                    )}
+                    onClick={() => navigate('/messages')}
+                  >
+                    <div className={cn('w-10 h-10 rounded-full flex items-center justify-center transition-all', meta.color)}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{item.title}</p>
+                      <p className={cn('text-xs', item.type === 'missed' ? 'text-destructive' : 'text-muted-foreground')}>
+                        {item.description}
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground whitespace-nowrap">{item.time}</p>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">{item.title}</p>
-                    <p className="truncate text-sm text-muted-foreground">{item.description}</p>
-                  </div>
-                </div>
-                <Badge variant="outline" className="shrink-0">{item.time}</Badge>
-              </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
+                );
+              })
+            )}
+          </div>
+
+          <div className="mt-auto pt-6">
+            <div className="p-4 rounded-xl bg-muted border border-dashed border-border flex items-center gap-3">
+              <Info className="h-5 w-5 text-primary shrink-0" />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                You have <span className="font-bold text-foreground">{messages.length} messages</span> and{' '}
+                <span className="font-bold text-foreground">{conversations.length} conversations</span> on your account.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
