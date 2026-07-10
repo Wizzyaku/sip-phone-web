@@ -69,7 +69,20 @@ function parseDuration(duration: string): number {
   return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
 }
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mql = window.matchMedia('(min-width: 768px)');
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
+  return isDesktop;
+}
+
 export function Calls() {
+  const isDesktop = useIsDesktop();
   const { status, error, activeCall, register, call } = useSipContext();
   const telnyxNumber = useAppStore((s) => s.telnyxNumber);
 
@@ -192,9 +205,9 @@ export function Calls() {
     }, [number]);
 
     return (
-      <div className="flex h-full flex-col gap-0 overflow-hidden bg-background -mx-4 md:hidden">
+      <div className="flex h-full flex-col gap-0 overflow-hidden bg-background">
         {/* Recents / Keypad View Toggle */}
-        <div className="px-4 py-2 shrink-0 bg-background/90 backdrop-blur-md z-10 border-b border-border/10">
+        <div className="px-4 py-2 shrink-0 bg-background z-10 border-b border-border/10">
           <div className="flex bg-muted rounded-xl p-1 shadow-inner">
             <button
               onClick={() => setMobileTab('recents')}
@@ -218,12 +231,12 @@ export function Calls() {
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto relative flex flex-col w-full pb-4 no-scrollbar">
+        <div className="flex-1 overflow-y-auto relative flex flex-col w-full pb-4">
           {/* View 1: Recents & Logs */}
           {mobileTab === 'recents' && (
             <div className="flex flex-col w-full px-4 gap-4 pb-4 pt-1">
               {/* Current Active Number Selector */}
-              <div className="glass-card p-4 rounded-2xl flex flex-col gap-3 mt-1 active:scale-[0.98] transition-transform cursor-pointer">
+              <div className="bg-white p-4 rounded-2xl border border-border/10 shadow-sm flex flex-col gap-3 mt-1 active:scale-[0.98] transition-transform cursor-pointer">
                 <div className="flex justify-between items-start">
                   <div>
                     <span className="text-[10px] font-bold text-primary uppercase tracking-[0.1em] block mb-1">Active Line</span>
@@ -242,12 +255,12 @@ export function Calls() {
 
               {/* Secondary Stats */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="glass-card p-3 rounded-2xl flex flex-col gap-1.5">
+                <div className="bg-white p-3 rounded-2xl border border-border/10 shadow-sm flex flex-col gap-1.5">
                   <Timer className="h-[18px] w-[18px] text-amber-600" />
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Avg Duration</p>
                   <p className="text-sm font-bold text-foreground">{stats.avgDuration}</p>
                 </div>
-                <div className="glass-card p-3 rounded-2xl flex flex-col gap-1.5">
+                <div className="bg-white p-3 rounded-2xl border border-border/10 shadow-sm flex flex-col gap-1.5">
                   <Disc className="h-[18px] w-[18px] text-primary" />
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Recordings</p>
                   <p className="text-sm font-bold text-foreground">{stats.recordings}</p>
@@ -308,7 +321,7 @@ export function Calls() {
                       return (
                         <div
                           key={callItem.id}
-                          className="bg-white/80 p-3 border border-border/10 rounded-xl flex items-center gap-3 active:scale-[0.98] transition-transform cursor-pointer shadow-sm"
+                          className="bg-white p-3 border border-border/10 rounded-xl flex items-center gap-3 active:scale-[0.98] transition-transform cursor-pointer shadow-sm"
                         >
                           <div className={cn('h-10 w-10 rounded-full flex items-center justify-center shrink-0', iconColor)}>
                             <Icon className="h-[18px] w-[18px]" />
@@ -404,10 +417,9 @@ export function Calls() {
 
   return (
     <>
-      <div className="md:hidden">
-        <MobileCalls />
-      </div>
-      <div className="hidden md:block space-y-6">
+      {!isDesktop && <MobileCalls />}
+      {isDesktop && (
+        <div className="space-y-6">
       {/* Active Line & Settings */}
       <Card className="glass-card">
         <CardContent className="flex flex-col items-start justify-between gap-4 p-6 md:flex-row md:items-center">
@@ -655,6 +667,7 @@ export function Calls() {
         </div>
       </div>
     </div>
+    )}
     </>
   );
 }
