@@ -266,7 +266,6 @@ export const useAppStore = create<AppState>()(
         theme: state.theme,
         user: state.user,
         telnyxNumber: state.telnyxNumber,
-        sipSettings: state.sipSettings,
       }),
     }
   )

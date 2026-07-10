@@ -39,6 +39,7 @@ export function useSip() {
   const [status, setStatus] = useState<SipStatus>('idle');
   const [activeCall, setActiveCall] = useState<ActiveCall | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const sipSettings = useAppStore((s) => s.sipSettings);
 
   const timerRef = useRef<number | null>(null);
 
@@ -318,11 +319,10 @@ export function useSip() {
   }, [activeCall]);
 
   useEffect(() => {
-    const settings = useAppStore.getState().sipSettings;
-    if (settings && status === 'idle') {
-      register(settings);
+    if (sipSettings && status === 'idle') {
+      register(sipSettings);
     }
-  }, [register, status]);
+  }, [register, status, sipSettings]);
 
   useEffect(() => {
     return () => {

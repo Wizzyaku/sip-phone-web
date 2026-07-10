@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState, useMemo, memo } from 'react';
 import {
   Phone,
-  PhoneOff,
-  Mic,
-  MicOff,
-  Volume2,
-  VolumeX,
   Loader2,
   Settings,
   History,
@@ -23,9 +18,9 @@ import {
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Badge } from '../components/ui/badge';
 import { Skeleton } from '../components/ui/skeleton';
-import { useSip } from '../hooks/useSip';
+import { useSipContext } from '../context/SipContext';
+import { saveSipCredentials } from '../lib/sipCredentials';
 import { useAppStore } from '../store/appStore';
 import { cn } from '../lib/utils';
 
@@ -58,12 +53,6 @@ interface CallRecord {
   date: Date;
 }
 
-function formatDuration(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
-
 function formatCallTime(date: Date): string {
   const now = new Date();
   const diff = now.getTime() - date.getTime();
@@ -80,10 +69,9 @@ function parseDuration(duration: string): number {
 }
 
 export function Calls() {
-  const { status, error, activeCall, register, call, hangup, toggleMute, toggleSpeaker, acceptCall, rejectCall } = useSip();
+  const { status, error, activeCall, register, call } = useSipContext();
   const telnyxNumber = useAppStore((s) => s.telnyxNumber);
 
-  const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const sipSettings = useAppStore((s) => s.sipSettings);
   const setSipSettings = useAppStore((s) => s.setSipSettings);
   const [settings, setSettings] = useState({
@@ -163,19 +151,6 @@ export function Calls() {
     call(number.trim());
   };
 
-  useEffect(() => {
-    if (activeCall?.remoteStream && remoteAudioRef.current) {
-      remoteAudioRef.current.srcObject = activeCall.remoteStream;
-      remoteAudioRef.current.play().catch(() => {});
-    }
-  }, [activeCall?.remoteStream]);
-
-  useEffect(() => {
-    if (remoteAudioRef.current) {
-      remoteAudioRef.current.muted = !activeCall?.speakerOn;
-    }
-  }, [activeCall?.speakerOn]);
-
   const activeLine = settings.phoneNumber || telnyxNumber || '+1 (555) 012-3456';
 
   const tabs: { id: RecentFilter; label: string }[] = [
@@ -186,67 +161,6 @@ export function Calls() {
 
   return (
     <div className="space-y-6">
-      <audio ref={remoteAudioRef} className="hidden" />
-
-      {/* Active Call Banner */}
-      {activeCall && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="flex flex-col items-center justify-between gap-4 p-6 sm:flex-row">
-            <div className="flex items-center gap-4">
-              <div
-                className={cn(
-                  'flex h-14 w-14 items-center justify-center rounded-full bg-primary/10',
-                  (activeCall.status === 'Ringing' || activeCall.status === 'Connecting') && 'animate-pulse'
-                )}
-              >
-                <Phone
-                  className={cn(
-                    'h-7 w-7 text-primary',
-                    (activeCall.status === 'Ringing' || activeCall.status === 'Connecting') && 'animate-bounce'
-                  )}
-                />
-              </div>
-              <div className="text-center sm:text-left">
-                <p className="text-sm text-muted-foreground">
-                  {activeCall.direction === 'incoming' ? 'Incoming call' : 'Outgoing call'}
-                </p>
-                <p className="text-xl font-semibold">{activeCall.remoteIdentity}</p>
-                <div className="mt-1 flex items-center justify-center gap-2 sm:justify-start">
-                  <Badge variant="outline">{activeCall.status}</Badge>
-                  {activeCall.status === 'In call' && activeCall.startTime && (
-                    <Badge variant="secondary">{formatDuration(activeCall.durationSeconds)}</Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              {activeCall.direction === 'incoming' && activeCall.status === 'Ringing' ? (
-                <>
-                  <Button variant="default" size="icon" onClick={acceptCall} aria-label="Accept call">
-                    <Phone className="h-4 w-4" />
-                  </Button>
-                  <Button variant="destructive" size="icon" onClick={rejectCall} aria-label="Reject call">
-                    <PhoneOff className="h-4 w-4" />
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="outline" size="icon" onClick={toggleMute} aria-label={activeCall.muted ? 'Unmute' : 'Mute'}>
-                    {activeCall.muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                  </Button>
-                  <Button variant="outline" size="icon" onClick={toggleSpeaker} aria-label={activeCall.speakerOn ? 'Turn speaker off' : 'Turn speaker on'}>
-                    {activeCall.speakerOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-                  </Button>
-                  <Button variant="destructive" size="icon" onClick={hangup} aria-label="Hang up">
-                    <PhoneOff className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Active Line & Settings */}
       <Card className="glass-card">
         <CardContent className="flex flex-col items-start justify-between gap-4 p-6 md:flex-row md:items-center">
@@ -301,8 +215,9 @@ export function Calls() {
             </div>
             <div className="flex items-center gap-3">
               <Button
-                onClick={() => {
+                onClick={async () => {
                   setSipSettings(settings);
+                  await saveSipCredentials(settings);
                   register(settings);
                 }}
                 disabled={status === 'connecting' || status === 'registered'}
