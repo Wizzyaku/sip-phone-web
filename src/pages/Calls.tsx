@@ -39,8 +39,8 @@ const keypad = [
   { digit: '7', sub: 'pqrs' },
   { digit: '8', sub: 'tuv' },
   { digit: '9', sub: 'wxyz' },
-  { digit: '*', sub: '' },
-  { digit: '0', sub: '+' },
+  { digit: '+', sub: '' },
+  { digit: '0', sub: '' },
   { digit: '#', sub: '' },
 ];
 
@@ -152,7 +152,7 @@ export function Calls() {
   }, [callHistory]);
 
   const handleDial = (digit: string) => {
-    if (number.length < 15) setNumber((n) => n + digit);
+    if (number.length < 16) setNumber((n) => n + digit);
   };
   const handleBackspace = () => setNumber((n) => n.slice(0, -1));
   const handleClear = () => setNumber('');

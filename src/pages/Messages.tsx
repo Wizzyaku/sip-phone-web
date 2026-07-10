@@ -8,6 +8,7 @@ import {
   X,
   Search,
   AlertCircle,
+  Check,
   CheckCheck,
   FileAudio,
   Phone,
@@ -132,23 +133,33 @@ export function Messages() {
   const fetchMessages = useCallback(async () => {
     setLoading(true);
     setError(null);
+    const currentNumber = useAppStore.getState().telnyxNumber;
     try {
       const res = await axios.get(`${API_URL}/messages`);
       const apiMessages: SmsMessage[] = res.data;
-      const mapped: Message[] = apiMessages.map((m) => ({
-        id: m.sid,
-        conversationId: m.from === m.to ? m.to : [m.from, m.to].sort().join('|'),
-        from: m.from,
-        to: m.to,
-        body: m.body,
-        type: 'text',
-        direction: m.direction,
-        status: m.status || 'received',
-        createdAt: m.dateCreated,
-      }));
+      const mapped: Message[] = apiMessages.map((m) => {
+        const isFromMe = currentNumber ? m.from.trim() === currentNumber.trim() : m.direction === 'outbound';
+        return {
+          id: m.sid,
+          conversationId: m.from === m.to ? m.to : getConversationId(m.from, m.to),
+          from: m.from,
+          to: m.to,
+          body: m.body,
+          type: 'text' as MessageType,
+          direction: isFromMe ? ('outbound' as const) : ('inbound' as const),
+          status: m.status || (isFromMe ? 'sent' : 'received'),
+          createdAt: m.dateCreated,
+        };
+      });
       const current = useAppStore.getState().messages;
-      const merged = [...current.filter((sm) => !mapped.some((m) => m.id === sm.id))];
-      setStoreMessages([...mapped, ...merged]);
+      const merged = current.map((sm) => {
+        const apiMatch = mapped.find((m) => m.id === sm.id);
+        if (!apiMatch) return sm;
+        // Keep our local direction if it differs from the API's direction.
+        return sm.direction === 'outbound' ? { ...apiMatch, direction: 'outbound' as const } : apiMatch;
+      });
+      const newApiMessages = mapped.filter((m) => !current.some((sm) => sm.id === m.id));
+      setStoreMessages([...merged, ...newApiMessages]);
     } catch (err) {
       setError('Failed to load messages. Using local messages only.');
     } finally {
@@ -178,11 +189,11 @@ export function Messages() {
     e.preventDefault();
     const number = composeNumber.trim();
     if (!number) return;
-    const existing = conversations.find((c) => c.contact === number);
+    const id = telnyxNumber ? getConversationId(telnyxNumber, number) : number;
+    const existing = conversations.find((c) => c.id === id || c.contact === number);
     if (existing) {
       handleSelectConversation(existing.id);
     } else {
-      const id = number;
       useAppStore.getState().setConversations([
         { id, contact: number, avatar: getInitials(number), unreadCount: 0, messages: [] },
         ...conversations,
@@ -193,6 +204,9 @@ export function Messages() {
     setComposeNumber('');
     setComposeOpen(false);
   };
+
+  const getConversationId = (a: string, b: string) =>
+    a === b ? a : [a.trim(), b.trim()].sort().join('|');
 
   const sendTextMessage = async () => {
     if (!to.trim() || !body.trim()) return;
@@ -210,7 +224,7 @@ export function Messages() {
       });
       addStoreMessage({
         id: res.data.sid || crypto.randomUUID(),
-        conversationId: to.trim(),
+        conversationId: getConversationId(telnyxNumber, to.trim()),
         from: telnyxNumber,
         to: to.trim(),
         body: body.trim(),
@@ -232,7 +246,7 @@ export function Messages() {
     if (!to.trim() || !telnyxNumber) return;
     addStoreMessage({
       id: crypto.randomUUID(),
-      conversationId: to.trim(),
+      conversationId: getConversationId(telnyxNumber, to.trim()),
       from: telnyxNumber,
       to: to.trim(),
       body: type === 'audio' ? 'Voice message' : file.name,
@@ -486,8 +500,16 @@ export function Messages() {
                       )}
                     >
                       <span>{formatTime(msg.createdAt)}</span>
-                      {msg.direction === 'outbound' && msg.status === 'read' && (
-                        <CheckCheck className="h-3 w-3 text-primary" />
+                      {msg.direction === 'outbound' && (
+                        <span className="flex items-center gap-0.5">
+                          {msg.status === 'read' ? (
+                            <CheckCheck className="h-3 w-3 text-primary" />
+                          ) : msg.status === 'delivered' ? (
+                            <CheckCheck className="h-3 w-3 text-muted-foreground" />
+                          ) : (
+                            <Check className="h-3 w-3 text-muted-foreground" />
+                          )}
+                        </span>
                       )}
                     </div>
                   </div>
