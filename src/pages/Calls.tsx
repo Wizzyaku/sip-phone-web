@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useMemo, memo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Phone,
   Loader2,
@@ -15,7 +14,6 @@ import {
   Delete,
   Video,
   ChevronDown,
-  Bell,
 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -72,7 +70,6 @@ function parseDuration(duration: string): number {
 }
 
 export function Calls() {
-  const navigate = useNavigate();
   const { status, error, activeCall, register, call } = useSipContext();
   const telnyxNumber = useAppStore((s) => s.telnyxNumber);
 
@@ -183,13 +180,6 @@ export function Calls() {
   ];
 
   function MobileCalls() {
-    const isConnected = status === 'registered';
-    const statusLabel = isConnected
-      ? 'SIP: Connected'
-      : status === 'connecting'
-      ? 'SIP: Connecting...'
-      : 'SIP: Disconnected';
-
     const formattedDial = useMemo(() => {
       const digits = number.replace(/\D/g, '');
       if (digits.length > 6) {
@@ -202,37 +192,9 @@ export function Calls() {
     }, [number]);
 
     return (
-      <div className="flex h-[calc(100vh-7.5rem)] flex-col gap-0 overflow-hidden bg-gradient-to-b from-muted/50 to-background -mx-4 md:hidden">
-        {/* Mobile Header */}
-        <header className="flex items-center justify-between px-4 py-3 shrink-0 z-20 bg-background/90 backdrop-blur-md border-b border-border/20">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-muted border-2 border-primary/20 overflow-hidden shadow-sm flex items-center justify-center text-xs font-bold text-primary">
-              {activeLine.slice(-2).toUpperCase()}
-            </div>
-            <div className="flex flex-col">
-              <h1 className="text-sm font-bold text-foreground leading-none mb-1">Calls</h1>
-              <div className="flex items-center gap-1.5">
-                <span className={cn('h-1.5 w-1.5 rounded-full', isConnected ? 'bg-green-500' : 'bg-yellow-500')} />
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{statusLabel}</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:bg-muted">
-              <Bell className="h-4 w-4" />
-            </Button>
-            <Button
-              size="sm"
-              className="rounded-lg text-[11px] font-semibold px-3 py-1.5 h-auto"
-              onClick={() => navigate('/phone-numbers')}
-            >
-              Buy #
-            </Button>
-          </div>
-        </header>
-
+      <div className="flex h-full flex-col gap-0 overflow-hidden bg-background -mx-4 md:hidden">
         {/* Recents / Keypad View Toggle */}
-        <div className="px-4 py-3 shrink-0 bg-background/90 backdrop-blur-md z-10">
+        <div className="px-4 py-2 shrink-0 bg-background/90 backdrop-blur-md z-10 border-b border-border/10">
           <div className="flex bg-muted rounded-xl p-1 shadow-inner">
             <button
               onClick={() => setMobileTab('recents')}
@@ -256,7 +218,7 @@ export function Calls() {
         </div>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto relative flex flex-col w-full pb-20 no-scrollbar">
+        <div className="flex-1 overflow-y-auto relative flex flex-col w-full pb-4 no-scrollbar">
           {/* View 1: Recents & Logs */}
           {mobileTab === 'recents' && (
             <div className="flex flex-col w-full px-4 gap-4 pb-4 pt-1">
