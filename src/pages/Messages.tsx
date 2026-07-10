@@ -65,13 +65,13 @@ function MessageContent({ msg }: { msg: Message }) {
       <img
         src={msg.mediaUrl}
         alt={msg.mediaName || 'Image'}
-        className="max-h-48 rounded-md object-cover"
+        className="max-h-32 rounded-md object-cover md:max-h-48"
       />
     );
   }
   if (msg.type === 'video' && msg.mediaUrl) {
     return (
-      <video src={msg.mediaUrl} controls className="max-h-48 rounded-md">
+      <video src={msg.mediaUrl} controls className="max-h-32 rounded-md md:max-h-48">
         Your browser does not support the video tag.
       </video>
     );
@@ -79,8 +79,8 @@ function MessageContent({ msg }: { msg: Message }) {
   if (msg.type === 'audio' && msg.mediaUrl) {
     return (
       <div className="flex items-center gap-2">
-        <FileAudio className="h-5 w-5 shrink-0" />
-        <audio src={msg.mediaUrl} controls className="max-w-[200px]" />
+        <FileAudio className="h-4 w-4 shrink-0 md:h-5 md:w-5" />
+        <audio src={msg.mediaUrl} controls className="max-w-[140px] md:max-w-[200px]" />
       </div>
     );
   }
@@ -107,6 +107,7 @@ export function Messages() {
   const [filter, setFilter] = useState<FilterTab>('all');
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeNumber, setComposeNumber] = useState('');
+  const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -183,6 +184,7 @@ export function Messages() {
     if (conversation) {
       setTo(conversation.contact);
     }
+    setMobileChatOpen(true);
   };
 
   const handleStartConversation = (e: React.FormEvent) => {
@@ -302,52 +304,52 @@ export function Messages() {
   ];
 
   return (
-    <div className="flex h-[calc(100vh-7.5rem)] flex-col gap-0 overflow-hidden rounded-2xl glass-card md:flex-row">
+    <div className="flex h-[calc(100vh-7rem)] flex-col gap-0 overflow-hidden rounded-none glass-card -mx-4 md:mx-0 md:h-[calc(100vh-7.5rem)] md:rounded-2xl md:flex-row">
       {/* Left Pane */}
-      <section className="flex h-full w-full flex-col border-r border-border/20 md:w-[360px]">
-        <div className="space-y-3 p-4">
+      <section className={cn('flex h-full w-full flex-col border-r border-border/20 md:w-[360px]', mobileChatOpen && 'hidden md:flex')}>
+        <div className="space-y-2 p-2.5 md:space-y-3 md:p-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">Messages</h2>
+            <h2 className="text-base font-bold md:text-xl">Messages</h2>
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" onClick={() => setComposeOpen((v) => !v)} title="New conversation">
-                <PenSquare className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9" onClick={() => setComposeOpen((v) => !v)} title="New conversation">
+                <PenSquare className="h-3.5 w-3.5 md:h-4 md:w-4" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={fetchMessages} disabled={loading} title="Refresh messages">
-                <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
+              <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9" onClick={fetchMessages} disabled={loading} title="Refresh messages">
+                <RefreshCw className={cn('h-3.5 w-3.5 md:h-4 md:w-4', loading && 'animate-spin')} />
               </Button>
             </div>
           </div>
           {composeOpen && (
-            <form onSubmit={handleStartConversation} className="flex items-center gap-2">
+            <form onSubmit={handleStartConversation} className="flex items-center gap-1.5">
               <Input
                 type="tel"
                 value={composeNumber}
                 onChange={(e) => setComposeNumber(e.target.value)}
                 placeholder="Enter phone number"
-                className="h-9 flex-1 rounded-lg text-xs"
+                className="h-8 flex-1 rounded-md text-[10px] md:h-9 md:rounded-lg md:text-xs"
                 autoFocus
               />
-              <Button type="submit" size="sm" className="h-9 rounded-lg px-3 text-xs">
+              <Button type="submit" size="sm" className="h-8 rounded-md px-2 text-[10px] md:h-9 md:rounded-lg md:px-3 md:text-xs">
                 Start
               </Button>
             </form>
           )}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground md:left-3 md:h-4 md:w-4" />
             <Input
               placeholder="Search conversations..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-10 rounded-xl pl-9"
+              className="h-9 rounded-lg pl-8 text-xs md:h-10 md:rounded-xl md:pl-9"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 md:gap-2">
             {tabs.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setFilter(t.id)}
                 className={cn(
-                  'rounded-full px-4 py-1.5 text-xs font-semibold transition-colors',
+                  'rounded-full px-3 py-1 text-[10px] font-semibold transition-colors md:px-4 md:py-1.5 md:text-xs',
                   filter === t.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 )}
               >
@@ -356,34 +358,34 @@ export function Messages() {
             ))}
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto px-2 pb-2">
+        <div className="flex-1 overflow-y-auto px-1.5 pb-1.5 md:px-2 md:pb-2">
           {loading && filteredConversations.length === 0 && (
-            <div className="space-y-3 p-2">
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
+            <div className="space-y-2 p-1.5 md:space-y-3 md:p-2">
+              <Skeleton className="h-14 w-full md:h-16" />
+              <Skeleton className="h-14 w-full md:h-16" />
+              <Skeleton className="h-14 w-full md:h-16" />
             </div>
           )}
           {filteredConversations.length === 0 && !loading && (
-            <div className="flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-              <MessageSquare className="mb-3 h-10 w-10 opacity-50" />
-              <p className="text-sm font-medium">No conversations yet</p>
-              <p className="mb-4 max-w-[200px] text-xs">
+            <div className="flex flex-col items-center justify-center p-4 text-center text-muted-foreground md:p-6">
+              <MessageSquare className="mb-2 h-8 w-8 opacity-50 md:mb-3 md:h-10 md:w-10" />
+              <p className="text-xs font-medium md:text-sm">No conversations yet</p>
+              <p className="mb-2.5 max-w-[200px] text-[10px] md:mb-4 md:text-xs">
                 Messages are fetched in real time. Start a conversation or check back once messages arrive.
               </p>
-              {error && <p className="mb-3 max-w-[220px] text-xs text-destructive">{error}</p>}
+              {error && <p className="mb-2.5 max-w-[220px] text-[10px] text-destructive md:mb-3 md:text-xs">{error}</p>}
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-lg text-xs"
+                className="rounded-md text-[10px] md:rounded-lg md:text-xs"
                 onClick={() => setComposeOpen(true)}
               >
-                <PenSquare className="mr-2 h-3.5 w-3.5" />
+                <PenSquare className="mr-1.5 h-3 w-3 md:mr-2 md:h-3.5 md:w-3.5" />
                 New conversation
               </Button>
             </div>
           )}
-          <div className="space-y-1">
+          <div className="space-y-0.5 md:space-y-1">
             {filteredConversations.map((conv) => {
               const isActive = activeId === conv.id;
               return (
@@ -391,28 +393,28 @@ export function Messages() {
                   key={conv.id}
                   onClick={() => handleSelectConversation(conv.id)}
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-2xl p-3 text-left transition-all',
+                    'flex w-full items-center gap-2 rounded-xl p-2 text-left transition-all md:gap-3 md:rounded-2xl md:p-3',
                     isActive ? 'border border-primary/10 bg-white shadow-sm' : 'hover:bg-primary/5'
                   )}
                 >
                   <div className="relative">
-                    <Avatar className="h-12 w-12 bg-primary text-primary-foreground">
-                      <AvatarFallback>{getInitials(conv.contactName || conv.contact)}</AvatarFallback>
+                    <Avatar className="h-10 w-10 bg-primary text-primary-foreground md:h-12 md:w-12">
+                      <AvatarFallback className="text-xs md:text-sm">{getInitials(conv.contactName || conv.contact)}</AvatarFallback>
                     </Avatar>
                     {conv.unreadCount > 0 && (
-                      <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500" />
+                      <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 md:h-3.5 md:w-3.5" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between">
-                      <p className={cn('truncate font-semibold', isActive && 'text-primary')}>
+                      <p className={cn('truncate text-sm font-semibold md:text-base', isActive && 'text-primary')}>
                         {conv.contactName || conv.contact}
                       </p>
                       <span className="text-[10px] text-muted-foreground">
                         {conv.lastMessage && formatRelative(conv.lastMessage.createdAt)}
                       </span>
                     </div>
-                    <p className="truncate text-xs text-muted-foreground">
+                    <p className="truncate text-[10px] text-muted-foreground md:text-xs">
                       {conv.lastMessage?.type === 'text'
                         ? conv.lastMessage.body
                         : conv.lastMessage
@@ -428,42 +430,42 @@ export function Messages() {
       </section>
 
       {/* Center Pane */}
-      <section className="flex h-full flex-1 flex-col bg-card">
+      <section className={cn('flex h-full flex-1 flex-col bg-card', !mobileChatOpen && 'hidden md:flex')}>
         {activeConversation ? (
           <>
-            <header className="flex h-16 items-center justify-between border-b border-border/10 px-4">
-              <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="-ml-2 md:hidden">
-                  <ArrowLeft className="h-5 w-5" />
+            <header className="flex h-14 items-center justify-between border-b border-border/10 px-2.5 md:h-16 md:px-4">
+              <div className="flex items-center gap-2 md:gap-3">
+                <Button variant="ghost" size="icon" className="-ml-1 h-8 w-8 md:-ml-2 md:h-9 md:w-9" onClick={() => setMobileChatOpen(false)}>
+                  <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
                 </Button>
-                <Avatar className="h-10 w-10 bg-primary text-primary-foreground">
-                  <AvatarFallback>
+                <Avatar className="h-9 w-9 bg-primary text-primary-foreground md:h-10 md:w-10">
+                  <AvatarFallback className="text-xs md:text-sm">
                     {getInitials(activeConversation.contactName || activeConversation.contact)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h2 className="font-semibold leading-none">
+                  <h2 className="text-sm font-semibold leading-none md:text-base">
                     {activeConversation.contactName || activeConversation.contact}
                   </h2>
-                  <p className="text-[11px] font-medium text-emerald-500">Online</p>
+                  <p className="text-[10px] font-medium text-emerald-500 md:text-[11px]">Online</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="rounded-lg">
-                  <Phone className="h-5 w-5" />
+              <div className="flex items-center gap-0.5 md:gap-1">
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md md:h-9 md:w-9 md:rounded-lg">
+                  <Phone className="h-4 w-4 md:h-5 md:w-5" />
                 </Button>
-                <Button variant="ghost" size="icon" className="rounded-lg">
-                  <VideoIcon className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md md:h-9 md:w-9 md:rounded-lg">
+                  <VideoIcon className="h-4 w-4 md:h-5 md:w-5" />
                 </Button>
-                <Button variant="ghost" size="icon" className="rounded-lg">
-                  <MoreVertical className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md md:h-9 md:w-9 md:rounded-lg">
+                  <MoreVertical className="h-4 w-4 md:h-5 md:w-5" />
                 </Button>
               </div>
             </header>
 
-            <div className="flex-1 space-y-4 overflow-y-auto bg-muted/30 p-4">
+            <div className="flex-1 space-y-2.5 overflow-y-auto bg-muted/30 p-2.5 md:space-y-4 md:p-4">
               <div className="flex justify-center">
-                <span className="rounded-full bg-muted px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <span className="rounded-full bg-muted px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground md:px-4 md:py-1">
                   Today
                 </span>
               </div>
@@ -471,21 +473,21 @@ export function Messages() {
                 <div
                   key={msg.id}
                   className={cn(
-                    'flex max-w-[85%]',
+                    'flex max-w-[90%] md:max-w-[85%]',
                     msg.direction === 'outbound' ? 'ml-auto justify-end' : 'justify-start'
                   )}
                 >
                   {msg.direction === 'inbound' && (
-                    <Avatar className="mr-2 h-8 w-8 bg-primary text-primary-foreground">
-                      <AvatarFallback>
+                    <Avatar className="mr-1.5 h-7 w-7 bg-primary text-primary-foreground md:mr-2 md:h-8 md:w-8">
+                      <AvatarFallback className="text-[10px] md:text-xs">
                         {getInitials(activeConversation.contactName || activeConversation.contact)}
                       </AvatarFallback>
                     </Avatar>
                   )}
-                  <div className="space-y-1">
+                  <div className="space-y-0.5 md:space-y-1">
                     <div
                       className={cn(
-                        'relative rounded-2xl p-3 text-sm group',
+                        'relative rounded-xl p-2 text-xs group md:rounded-2xl md:p-3 md:text-sm',
                         msg.direction === 'outbound'
                           ? 'rounded-tr-none bg-primary text-primary-foreground'
                           : 'rounded-tl-none border bg-white text-foreground'
@@ -518,24 +520,24 @@ export function Messages() {
               <div ref={chatEndRef} />
             </div>
 
-            <footer className="border-t border-border/10 bg-card p-4">
+            <footer className="border-t border-border/10 bg-card p-2.5 md:p-4">
               {error && (
-                <div className="mb-2 flex items-center gap-2 text-sm text-destructive">
-                  <AlertCircle className="h-4 w-4" />
+                <div className="mb-1.5 flex items-center gap-1.5 text-xs text-destructive md:mb-2 md:gap-2 md:text-sm">
+                  <AlertCircle className="h-3.5 w-3.5 md:h-4 md:w-4" />
                   {error}
                 </div>
               )}
               {mediaUploads.length > 0 && (
-                <div className="mb-2 flex flex-wrap gap-2">
+                <div className="mb-1.5 flex flex-wrap gap-1.5 md:mb-2 md:gap-2">
                   {mediaUploads.map((upload) => (
-                    <div key={upload.id} className="relative rounded-md border p-2">
+                    <div key={upload.id} className="relative rounded-md border p-1.5 md:p-2">
                       {upload.type === 'image' ? (
-                        <img src={upload.previewUrl} alt="preview" className="h-16 w-16 rounded object-cover" />
+                        <img src={upload.previewUrl} alt="preview" className="h-12 w-12 rounded object-cover md:h-16 md:w-16" />
                       ) : upload.type === 'video' ? (
-                        <video src={upload.previewUrl} className="h-16 w-16 rounded object-cover" />
+                        <video src={upload.previewUrl} className="h-12 w-12 rounded object-cover md:h-16 md:w-16" />
                       ) : (
-                        <div className="flex h-16 w-16 items-center justify-center rounded bg-muted">
-                          <FileAudio className="h-6 w-6" />
+                        <div className="flex h-12 w-12 items-center justify-center rounded bg-muted md:h-16 md:w-16">
+                          <FileAudio className="h-5 w-5 md:h-6 md:w-6" />
                         </div>
                       )}
                       <button
@@ -549,8 +551,8 @@ export function Messages() {
                   ))}
                 </div>
               )}
-              <form onSubmit={handleSubmit} className="flex items-end gap-2">
-                <div className="flex items-center gap-1 pb-1">
+              <form onSubmit={handleSubmit} className="flex items-end gap-1.5 md:gap-2">
+                <div className="flex items-center gap-0.5 pb-1 md:gap-1">
                   <input
                     ref={imageInputRef}
                     type="file"
@@ -569,19 +571,19 @@ export function Messages() {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="rounded-full"
+                    className="h-8 w-8 rounded-full md:h-9 md:w-9"
                     onClick={() => imageInputRef.current?.click()}
                   >
-                    <PlusCircle className="h-5 w-5" />
+                    <PlusCircle className="h-4 w-4 md:h-5 md:w-5" />
                   </Button>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="rounded-full"
+                    className="h-8 w-8 rounded-full md:h-9 md:w-9"
                     onClick={() => videoInputRef.current?.click()}
                   >
-                    <ImageIcon className="h-5 w-5" />
+                    <ImageIcon className="h-4 w-4 md:h-5 md:w-5" />
                   </Button>
                 </div>
                 <div className="relative flex-1">
@@ -590,7 +592,7 @@ export function Messages() {
                     value={to}
                     onChange={(e) => setTo(e.target.value)}
                     placeholder="To"
-                    className="mb-2 h-8 rounded-lg px-3 text-xs"
+                    className="mb-1.5 h-7 rounded-md px-2 text-[10px] md:mb-2 md:h-8 md:rounded-lg md:px-3 md:text-xs"
                   />
                   <textarea
                     ref={textareaRef}
@@ -608,28 +610,28 @@ export function Messages() {
                     }}
                     placeholder="Type a message..."
                     rows={1}
-                    className="w-full resize-none rounded-2xl border border-border bg-muted px-4 py-3 pr-10 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full resize-none rounded-xl border border-border bg-muted px-3 py-2 pr-8 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 md:rounded-2xl md:px-4 md:py-3 md:pr-10 md:text-sm"
                   />
-                  <button type="button" className="absolute bottom-2.5 right-3 text-muted-foreground hover:text-primary">
-                    <Smile className="h-5 w-5" />
+                  <button type="button" className="absolute bottom-2 right-2 text-muted-foreground hover:text-primary md:bottom-2.5 md:right-3">
+                    <Smile className="h-4 w-4 md:h-5 md:w-5" />
                   </button>
                 </div>
                 <Button
                   type="submit"
                   size="icon"
-                  className="h-11 w-11 rounded-xl"
+                  className="h-9 w-9 rounded-lg md:h-11 md:w-11 md:rounded-xl"
                   disabled={sending || !to.trim() || !telnyxNumber || (mediaUploads.length === 0 && !body.trim())}
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 </Button>
               </form>
             </footer>
           </>
         ) : (
-          <div className="flex flex-1 flex-col items-center justify-center bg-card p-6 text-center text-muted-foreground">
-            <MessageSquare className="mb-3 h-12 w-12 opacity-50" />
-            <p className="font-medium">Select a conversation</p>
-            <p className="text-sm">Choose a contact from the sidebar to start chatting.</p>
+          <div className="flex flex-1 flex-col items-center justify-center bg-card p-4 text-center text-muted-foreground md:p-6">
+            <MessageSquare className="mb-2 h-10 w-10 opacity-50 md:mb-3 md:h-12 md:w-12" />
+            <p className="text-sm font-medium md:text-base">Select a conversation</p>
+            <p className="text-xs md:text-sm">Choose a contact from the sidebar to start chatting.</p>
           </div>
         )}
       </section>
