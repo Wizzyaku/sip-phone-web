@@ -25,6 +25,8 @@ import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { Skeleton } from '../components/ui/skeleton';
 import { cn } from '../lib/utils';
 import { useAppStore, type Message, type MessageType } from '../store/appStore';
+import { useIsDesktop } from '../hooks/useIsDesktop';
+import { MobileMessages } from '../components/MobileMessages';
 
 interface SmsMessage {
   sid: string;
@@ -39,6 +41,7 @@ interface SmsMessage {
 const API_URL = import.meta.env.VITE_API_URL ?? '/api';
 
 type FilterTab = 'all' | 'unread' | 'groups';
+type MobileFilterTab = 'all' | 'sms' | 'webchat';
 
 function getInitials(value: string): string {
   return value.replace(/[^a-zA-Z0-9]/g, '').slice(-2).toUpperCase() || '??';
@@ -105,6 +108,7 @@ export function Messages() {
   const [sending, setSending] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterTab>('all');
+  const [mobileFilter, setMobileFilter] = useState<MobileFilterTab>('all');
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeNumber, setComposeNumber] = useState('');
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
@@ -112,6 +116,7 @@ export function Messages() {
   const videoInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isDesktop = useIsDesktop();
 
   const activeConversation = useMemo(() => {
     return conversations.find((c) => c.id === activeId) || null;
@@ -304,7 +309,43 @@ export function Messages() {
   ];
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] flex-col gap-0 overflow-hidden rounded-none glass-card -mx-4 md:mx-0 md:h-[calc(100vh-7.5rem)] md:rounded-2xl md:flex-row">
+    <div className="relative -mx-4 h-[calc(100vh-8rem)] overflow-hidden bg-background md:mx-0 md:h-[calc(100vh-7.5rem)] md:rounded-2xl md:border md:border-border/30">
+      {!isDesktop && (
+        <MobileMessages
+          conversations={conversations}
+          activeConversation={activeConversation}
+          loading={loading}
+          error={error}
+          telnyxNumber={telnyxNumber}
+          to={to}
+          body={body}
+          sending={sending}
+          search={search}
+          mobileFilter={mobileFilter}
+          composeNumber={composeNumber}
+          composeOpen={composeOpen}
+          mediaUploads={mediaUploads}
+          imageInputRef={imageInputRef}
+          videoInputRef={videoInputRef}
+          textareaRef={textareaRef}
+          chatEndRef={chatEndRef}
+          setSearch={setSearch}
+          setMobileFilter={setMobileFilter}
+          setComposeOpen={setComposeOpen}
+          setComposeNumber={setComposeNumber}
+          setBody={setBody}
+          setTo={setTo}
+          handleSelectConversation={handleSelectConversation}
+          handleStartConversation={handleStartConversation}
+          sendTextMessage={sendTextMessage}
+          handleSubmit={handleSubmit}
+          handleFileSelect={handleFileSelect}
+          handleRemoveMedia={handleRemoveMedia}
+          fetchMessages={fetchMessages}
+        />
+      )}
+      {isDesktop && (
+        <div className="glass-card flex h-full flex-col gap-0 overflow-hidden md:flex-row">
       {/* Left Pane */}
       <section className={cn('flex h-full w-full flex-col border-r border-border/20 md:w-[360px]', mobileChatOpen && 'hidden md:flex')}>
         <div className="space-y-2 p-2.5 md:space-y-3 md:p-4">
@@ -636,6 +677,8 @@ export function Messages() {
         )}
       </section>
 
+        </div>
+      )}
     </div>
   );
 }

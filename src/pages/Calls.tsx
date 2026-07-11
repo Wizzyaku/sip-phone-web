@@ -24,6 +24,7 @@ import { saveSipCredentials } from '../lib/sipCredentials';
 import { lookupUserByPhone, type DirectoryUser } from '../lib/directory';
 import { useAppStore } from '../store/appStore';
 import { cn } from '../lib/utils';
+import { useIsDesktop } from '../hooks/useIsDesktop';
 
 const keypad = [
   { digit: '1', sub: '' },
@@ -67,18 +68,6 @@ function parseDuration(duration: string): number {
   const match = duration.match(/(\d+)m\s+(\d+)s/);
   if (!match) return 0;
   return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
-}
-
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mql = window.matchMedia('(min-width: 768px)');
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mql.addEventListener('change', handler);
-    return () => mql.removeEventListener('change', handler);
-  }, []);
-  return isDesktop;
 }
 
 export function Calls() {
