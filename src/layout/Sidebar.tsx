@@ -44,8 +44,8 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   };
 
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-[280px] flex-col border-r border-white/20 bg-white/20 py-8 px-6 backdrop-blur-xl">
-      <div className="mb-8 px-2">
+    <aside className="relative flex h-full w-[280px] flex-col border-r border-white/20 bg-white/20 py-8 px-6 backdrop-blur-xl lg:fixed lg:left-0 lg:top-0 lg:h-screen">
+      <div className="mb-8 px-2 hidden lg:block">
         <div className="flex items-center gap-2 text-primary">
           <PhoneCall className="h-7 w-7" />
           <div>

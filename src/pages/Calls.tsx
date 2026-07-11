@@ -96,7 +96,13 @@ export function Calls() {
   const [number, setNumber] = useState('');
   const [directoryUser, setDirectoryUser] = useState<DirectoryUser | null>(null);
   const [recentFilter, setRecentFilter] = useState<RecentFilter>('all');
+  const [recentPage, setRecentPage] = useState(1);
   const [recentLoading, setRecentLoading] = useState(true);
+  const recentPageSize = 5;
+
+  useEffect(() => {
+    setRecentPage(1);
+  }, [recentFilter]);
   const [showSettings, setShowSettings] = useState(false);
   const [mobileTab, setMobileTab] = useState<'recents' | 'keypad'>('recents');
   const [callHistory, setCallHistory] = useState<CallRecord[]>([
@@ -156,7 +162,16 @@ export function Calls() {
     let filtered = callHistory;
     if (recentFilter === 'missed') filtered = callHistory.filter((c) => c.type === 'missed');
     if (recentFilter === 'recorded') filtered = callHistory.filter((c) => c.recorded);
-    return filtered.slice(0, 5);
+    const totalPages = Math.ceil(filtered.length / recentPageSize) || 1;
+    const page = Math.min(recentPage, totalPages);
+    return filtered.slice((page - 1) * recentPageSize, page * recentPageSize);
+  }, [callHistory, recentFilter, recentPage]);
+
+  const recentTotalPages = useMemo(() => {
+    let filtered = callHistory;
+    if (recentFilter === 'missed') filtered = callHistory.filter((c) => c.type === 'missed');
+    if (recentFilter === 'recorded') filtered = callHistory.filter((c) => c.recorded);
+    return Math.ceil(filtered.length / recentPageSize) || 1;
   }, [callHistory, recentFilter]);
 
   const stats = useMemo(() => {
@@ -238,7 +253,7 @@ export function Calls() {
         <div className="flex-1 overflow-y-auto flex flex-col w-full pb-4" style={{ WebkitOverflowScrolling: 'touch' }}>
           {/* View 1: Recents & Logs */}
           {mobileTab === 'recents' && (
-            <div className="flex flex-col gap-4 px-4 pt-3">
+            <div className="flex flex-col gap-4 -mx-4 px-4 pt-3 lg:mx-0 lg:px-4">
               {/* Active line & filter */}
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -316,14 +331,36 @@ export function Calls() {
                   })
                 )}
               </div>
+
+              {recentTotalPages > 1 && (
+                <div className="flex items-center justify-between px-2">
+                  <button
+                    onClick={() => setRecentPage((p) => Math.max(1, p - 1))}
+                    disabled={recentPage === 1}
+                    className="rounded-md bg-white px-3 py-1.5 text-xs font-bold text-foreground shadow-sm disabled:opacity-50"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-xs font-bold text-muted-foreground">
+                    {recentPage} / {recentTotalPages}
+                  </span>
+                  <button
+                    onClick={() => setRecentPage((p) => Math.min(recentTotalPages, p + 1))}
+                    disabled={recentPage === recentTotalPages}
+                    className="rounded-md bg-white px-3 py-1.5 text-xs font-bold text-foreground shadow-sm disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
           {/* View 2: Dialer Keypad */}
           {mobileTab === 'keypad' && (
-            <div className="flex flex-col items-center w-full px-4 h-full justify-between pb-3 pt-2">
+            <div className="flex flex-col items-center w-full px-4 h-full justify-start gap-2.5 pb-3 pt-2">
               {/* Screen Display */}
-              <div className="w-full text-center mb-3">
+              <div className="w-full text-center">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-1">Manual Entry</p>
                 <div className="w-full h-14 bg-white rounded-2xl flex items-center justify-center px-4 overflow-hidden border border-border/20 shadow-inner">
                   <span className="text-3xl font-bold text-foreground tracking-wider truncate">{formattedDial}</span>
@@ -337,7 +374,7 @@ export function Calls() {
               </div>
 
               {/* Numpad Grid */}
-              <div className="grid grid-cols-3 gap-x-4 gap-y-2.5 max-w-[260px] w-full mx-auto">
+              <div className="grid grid-cols-3 gap-2.5 max-w-[260px] w-full mx-auto">
                 {keypad.map((item) => (
                   <button
                     key={item.digit}
@@ -354,7 +391,7 @@ export function Calls() {
               </div>
 
               {/* Call Actions */}
-              <div className="mt-4 flex items-center justify-center gap-6 w-full max-w-[260px] mx-auto">
+              <div className="flex items-center justify-center gap-6 w-full max-w-[260px] mx-auto">
                 <Button
                   variant="outline"
                   size="icon"
@@ -555,8 +592,32 @@ export function Calls() {
                 })
               )}
             </div>
-            <div className="border-t border-white/20 p-4 text-center">
-              <button className="text-sm font-semibold text-primary hover:underline">View All Activities</button>
+            <div className="border-t border-white/20 p-4">
+              {recentTotalPages > 1 ? (
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => setRecentPage((p) => Math.max(1, p - 1))}
+                    disabled={recentPage === 1}
+                    className="rounded-md bg-white/60 px-3 py-1.5 text-xs font-bold text-foreground shadow-sm disabled:opacity-50"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-xs font-bold text-muted-foreground">
+                    {recentPage} / {recentTotalPages}
+                  </span>
+                  <button
+                    onClick={() => setRecentPage((p) => Math.min(recentTotalPages, p + 1))}
+                    disabled={recentPage === recentTotalPages}
+                    className="rounded-md bg-white/60 px-3 py-1.5 text-xs font-bold text-foreground shadow-sm disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <button className="text-sm font-semibold text-primary hover:underline">View All Activities</button>
+                </div>
+              )}
             </div>
           </Card>
         </div>

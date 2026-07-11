@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Search, Bell, Moon, Sun, Menu, Check, X, Wallet } from 'lucide-react';
+import { Search, Bell, Moon, Sun, Check, X, Wallet, PhoneCall } from 'lucide-react';
 import { useAppStore, unreadCount } from '../store/appStore';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -40,9 +40,13 @@ export function Header({ onMenuClick }: HeaderProps) {
   return (
     <header className="fixed top-0 right-0 z-30 flex h-16 w-full items-center justify-between border-b border-white/20 bg-sky-100 px-4 dark:bg-sky-900 md:bg-sky-100/90 md:backdrop-blur-md md:dark:bg-sky-900/90 lg:w-[calc(100%-280px)] lg:px-8">
       <div className="flex flex-1 items-center gap-4">
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenuClick}>
-          <Menu className="h-5 w-5" />
-        </Button>
+        <div className="flex items-center gap-2 text-primary lg:hidden">
+          <PhoneCall className="h-7 w-7" />
+          <div>
+            <h1 className="text-xl font-bold leading-tight">CloudTalk</h1>
+            <p className="text-xs text-muted-foreground">Enterprise Tier</p>
+          </div>
+        </div>
         <div className="relative hidden w-full max-w-md lg:block">
           <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -132,7 +136,10 @@ export function Header({ onMenuClick }: HeaderProps) {
         <div className="hidden h-8 w-px bg-border lg:block" />
 
         <div className="flex items-center gap-2">
-          <Avatar className="h-10 w-10 bg-primary text-primary-foreground shadow-sm">
+          <Avatar
+            className="h-10 w-10 cursor-pointer bg-primary text-primary-foreground shadow-sm lg:pointer-events-none"
+            onClick={onMenuClick}
+          >
             <AvatarFallback>{user.avatar}</AvatarFallback>
           </Avatar>
           <span className="hidden font-medium text-sm xl:inline">{user.name}</span>

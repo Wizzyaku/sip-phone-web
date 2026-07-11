@@ -17,16 +17,16 @@ export function Layout() {
         </div>
 
         {mobileOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden">
-            <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-            <div className={cn('absolute left-0 top-0 h-full w-[280px] bg-card shadow-xl')}>
+          <div className="fixed inset-0 z-50 pointer-events-none lg:hidden">
+            <div className="absolute top-16 h-[calc(100%-4rem)] w-full bg-black/50 pointer-events-auto" onClick={() => setMobileOpen(false)} />
+            <div className={cn('absolute left-0 top-16 h-[calc(100%-4rem)] w-[280px] bg-card shadow-xl pointer-events-auto')}>
               <Sidebar onNavigate={() => setMobileOpen(false)} />
             </div>
           </div>
         )}
 
         <div className="flex flex-1 flex-col lg:ml-[280px]">
-          <Header onMenuClick={() => setMobileOpen(true)} />
+          <Header onMenuClick={() => setMobileOpen((open) => !open)} />
           <main className="flex-1 overflow-auto px-4 lg:px-6 pt-16 lg:pt-[74px] pb-16 lg:pb-6">
             <Outlet />
           </main>
