@@ -25,9 +25,9 @@ export function Layout() {
           </div>
         )}
 
-        <div className="flex flex-1 flex-col lg:ml-[280px]">
+        <div className="flex min-w-0 flex-1 flex-col lg:ml-[280px]">
           <Header onMenuClick={() => setMobileOpen((open) => !open)} />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 lg:px-6 pt-16 lg:pt-[74px] pb-16 lg:pb-6">
+          <main className="flex min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden px-4 lg:px-6 pt-16 lg:pt-[74px] pb-16 lg:pb-6">
             <Outlet />
           </main>
           <MobileBottomNav />

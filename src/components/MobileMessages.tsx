@@ -172,11 +172,11 @@ export function MobileMessages(props: MobileMessagesProps) {
   ];
 
   return (
-    <div className="relative flex h-full w-full min-w-0 max-w-full flex-col overflow-hidden">
+    <div className="flex h-full w-full min-w-0 flex-col overflow-hidden">
       {/* Inbox view */}
       <div
         className={cn(
-          'flex h-full w-full min-w-0 max-w-full flex-col transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
+          'flex h-full w-full min-w-0 flex-col transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
           chatOpen && '-translate-x-1/4 opacity-50'
         )}
       >
@@ -335,7 +335,7 @@ export function MobileMessages(props: MobileMessagesProps) {
       {/* Chat view */}
       <div
         className={cn(
-          'fixed inset-0 z-[55] flex w-full max-w-full flex-col overflow-x-hidden bg-background shadow-[-10px_0_30px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
+          'fixed inset-0 z-[55] flex min-w-0 flex-col overflow-hidden bg-background shadow-[-10px_0_30px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
           chatOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >

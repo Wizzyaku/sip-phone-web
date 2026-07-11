@@ -309,8 +309,9 @@ export function Messages() {
   ];
 
   return (
-    <div className="relative -mx-4 h-[calc(100vh-8rem)] min-w-0 max-w-full overflow-hidden bg-background md:mx-0 md:h-[calc(100vh-7.5rem)] md:rounded-2xl md:border md:border-border/30">
+    <div className="relative h-[calc(100vh-8rem)] w-full min-w-0 overflow-hidden bg-background md:h-[calc(100vh-7.5rem)] md:rounded-2xl md:border md:border-border/30">
       {!isDesktop && (
+        <div className="absolute inset-0 -mx-4 w-[calc(100%+2rem)]">
         <MobileMessages
           conversations={conversations}
           activeConversation={activeConversation}
@@ -343,6 +344,7 @@ export function Messages() {
           handleRemoveMedia={handleRemoveMedia}
           fetchMessages={fetchMessages}
         />
+        </div>
       )}
       {isDesktop && (
         <div className="glass-card flex h-full flex-col gap-0 overflow-hidden md:flex-row">
