@@ -22,7 +22,7 @@ import { Input } from './ui/input';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
 import { cn } from '../lib/utils';
-import { useAppStore, type Conversation, type Message, type MessageType, type MediaUpload } from '../store/appStore';
+import { type Conversation, type Message, type MessageType, type MediaUpload } from '../store/appStore';
 
 type MobileFilterTab = 'all' | 'sms' | 'webchat';
 
@@ -115,7 +115,6 @@ function ChatBubble({ msg }: { msg: Message }) {
 }
 
 export function MobileMessages(props: MobileMessagesProps) {
-  const user = useAppStore((s) => s.user);
   const [chatOpen, setChatOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerTimer = useRef<number | null>(null);
@@ -149,11 +148,6 @@ export function MobileMessages(props: MobileMessagesProps) {
         c.lastMessage?.body.toLowerCase().includes(query)
     );
   }, [props.conversations, props.mobileFilter, props.search]);
-
-  const unreadCount = useMemo(
-    () => props.conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0),
-    [props.conversations]
-  );
 
   const handleOpenChat = (id: string) => {
     props.handleSelectConversation(id);
