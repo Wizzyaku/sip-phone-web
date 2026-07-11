@@ -309,7 +309,7 @@ export function Messages() {
   ];
 
   return (
-    <div className="relative -mx-4 h-[calc(100vh-8rem)] overflow-hidden bg-background md:mx-0 md:h-[calc(100vh-7.5rem)] md:rounded-2xl md:border md:border-border/30">
+    <div className="relative -mx-4 h-[calc(100vh-8rem)] min-w-0 max-w-full overflow-hidden bg-background md:mx-0 md:h-[calc(100vh-7.5rem)] md:rounded-2xl md:border md:border-border/30">
       {!isDesktop && (
         <MobileMessages
           conversations={conversations}

@@ -85,10 +85,10 @@ function formatRelative(date: string): string {
 function ChatBubble({ msg }: { msg: Message }) {
   const isSent = msg.direction === 'outbound';
   return (
-    <div className={cn('flex w-full', isSent ? 'justify-end' : 'justify-start')}>
+    <div className={cn('flex w-full min-w-0', isSent ? 'justify-end' : 'justify-start')}>
       <div
         className={cn(
-          'max-w-[85%] space-y-1 rounded-2xl p-3 shadow-sm',
+          'max-w-[85%] min-w-0 space-y-1 overflow-hidden rounded-2xl p-3 shadow-sm',
           isSent ? 'rounded-tr-none bg-primary text-primary-foreground' : 'rounded-tl-none border bg-white text-foreground'
         )}
       >
@@ -172,11 +172,11 @@ export function MobileMessages(props: MobileMessagesProps) {
   ];
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden">
+    <div className="relative flex h-full w-full min-w-0 max-w-full flex-col overflow-hidden">
       {/* Inbox view */}
       <div
         className={cn(
-          'flex h-full w-full flex-col transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
+          'flex h-full w-full min-w-0 max-w-full flex-col transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
           chatOpen && '-translate-x-1/4 opacity-50'
         )}
       >
@@ -240,7 +240,7 @@ export function MobileMessages(props: MobileMessagesProps) {
         </div>
 
         {/* Chat list */}
-        <div className="flex-1 overflow-y-auto px-4 pb-4 pt-3 no-scrollbar">
+        <div className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4 pt-3 no-scrollbar">
           {props.loading && filteredConversations.length === 0 && (
             <div className="flex flex-col gap-2">
               {[...Array(5)].map((_, i) => (
@@ -258,7 +258,7 @@ export function MobileMessages(props: MobileMessagesProps) {
             </div>
           )}
 
-          <div className="flex flex-col gap-2">
+          <div className="flex min-w-0 max-w-full flex-col gap-2">
             {filteredConversations.map((conv) => {
               const unread = conv.unreadCount > 0;
               const sms = isSmsContact(conv.contact);
@@ -268,7 +268,7 @@ export function MobileMessages(props: MobileMessagesProps) {
                   key={conv.id}
                   onClick={() => handleOpenChat(conv.id)}
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-2xl p-3 text-left transition-transform active:scale-[0.98]',
+                    'flex w-full min-w-0 max-w-full items-center gap-3 rounded-2xl p-3 text-left transition-transform active:scale-[0.98]',
                     unread
                       ? 'relative border border-primary/20 bg-white shadow-sm'
                       : 'glass-card'
@@ -284,17 +284,17 @@ export function MobileMessages(props: MobileMessagesProps) {
                       <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-white bg-green-500" />
                     )}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex items-center justify-between">
-                      <h4 className="truncate pr-2 text-[13px] font-bold text-foreground">
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    <div className="mb-1 flex min-w-0 items-center justify-between">
+                      <h4 className="min-w-0 flex-1 truncate pr-2 text-[13px] font-bold text-foreground">
                         {conv.contactName || conv.contact}
                       </h4>
                       <span className={cn('shrink-0 text-[10px] font-bold', unread ? 'text-primary' : 'text-muted-foreground')}>
                         {last ? formatRelative(last.createdAt) : ''}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <p className="truncate text-[11px] font-semibold text-foreground">
+                    <div className="flex min-w-0 items-center gap-1">
+                      <p className="min-w-0 flex-1 truncate text-[11px] font-semibold text-foreground">
                         {last?.type === 'text' ? last.body : last ? `Sent ${last.type}` : ''}
                       </p>
                     </div>
@@ -335,7 +335,7 @@ export function MobileMessages(props: MobileMessagesProps) {
       {/* Chat view */}
       <div
         className={cn(
-          'fixed inset-0 z-[55] flex w-full flex-col bg-background shadow-[-10px_0_30px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
+          'fixed inset-0 z-[55] flex w-full max-w-full flex-col overflow-x-hidden bg-background shadow-[-10px_0_30px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
           chatOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >
@@ -372,7 +372,7 @@ export function MobileMessages(props: MobileMessagesProps) {
               </div>
             </header>
 
-            <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 pt-4 no-scrollbar">
+            <div className="flex flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden px-4 pb-4 pt-4 no-scrollbar">
               <div className="flex justify-center shrink-0">
                 <span className="rounded-full bg-muted px-3 py-1 text-[10px] font-bold text-muted-foreground">Today</span>
               </div>
