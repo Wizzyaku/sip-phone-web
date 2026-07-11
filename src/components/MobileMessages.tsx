@@ -180,26 +180,6 @@ export function MobileMessages(props: MobileMessagesProps) {
           chatOpen && '-translate-x-1/4 opacity-50'
         )}
       >
-        {/* Sub header */}
-        <header className="flex items-center justify-between border-b border-border/20 bg-background/90 px-4 py-3 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 border-2 border-primary/20 bg-muted text-primary shadow-sm">
-              <AvatarFallback className="font-bold text-lg">{getInitials(user.name || user.email || 'User')}</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <h1 className="text-sm font-bold leading-none text-foreground">Messages</h1>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                {unreadCount} Unread
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={props.fetchMessages} disabled={props.loading}>
-              <RefreshCw className={cn('h-4 w-4 text-muted-foreground', props.loading && 'animate-spin')} />
-            </Button>
-          </div>
-        </header>
-
         {/* Search */}
         <div className="shrink-0 border-b border-border/10 bg-background/90 px-4 py-2.5 backdrop-blur-md">
           <div className="relative">
