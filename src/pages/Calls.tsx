@@ -25,6 +25,8 @@ import { lookupUserByPhone, type DirectoryUser } from '../lib/directory';
 import { useAppStore } from '../store/appStore';
 import { cn } from '../lib/utils';
 import { useIsDesktop } from '../hooks/useIsDesktop';
+import { LowBalanceModal } from '../components/LowBalanceModal';
+import { hasEnoughBalance } from '../lib/balance';
 
 const keypad = [
   { digit: '1', sub: '' },
@@ -93,6 +95,7 @@ export function Calls() {
     setRecentPage(1);
   }, [recentFilter]);
   const [showSettings, setShowSettings] = useState(false);
+  const [lowBalanceOpen, setLowBalanceOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<'recents' | 'keypad'>('recents');
   const [callHistory, setCallHistory] = useState<CallRecord[]>([
     { id: '1', name: 'Sarah Jenkins', phone: '+1 (555) 098-7654', time: '10:24 AM', duration: '12m 45s', type: 'incoming', recorded: true, date: new Date(Date.now() - 1000 * 60 * 60 * 2) },
@@ -182,6 +185,11 @@ export function Calls() {
   const handleClear = () => setNumber('');
   const handleCall = async () => {
     if (!number.trim()) return;
+    const balance = useAppStore.getState().balance;
+    if (!hasEnoughBalance(balance)) {
+      setLowBalanceOpen(true);
+      return;
+    }
     const target = directoryUser
       ? `sip:${directoryUser.sipUsername}@sip.telnyx.com`
       : number.trim();
@@ -691,6 +699,11 @@ export function Calls() {
       </div>
     </div>
     )}
+    <LowBalanceModal
+      open={lowBalanceOpen}
+      onClose={() => setLowBalanceOpen(false)}
+      action="call"
+    />
     </>
   );
 }

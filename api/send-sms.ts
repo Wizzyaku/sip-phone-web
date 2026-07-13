@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { addMessage } from '../lib/message-store.js';
+import { supabaseServer } from '../lib/supabase-server.js';
 
 export const config = {
   api: {
@@ -9,6 +10,7 @@ export const config = {
 
 const TELNYX_API_KEY = process.env.TELNYX_API_KEY ?? '';
 const TELNYX_PHONE_NUMBER = process.env.TELNYX_PHONE_NUMBER ?? '';
+const LOW_BALANCE_THRESHOLD = 10;
 
 function normalizePhone(number: string): string {
   const digits = number.replace(/\D/g, '');
@@ -47,6 +49,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (parseErr) {
     console.error('Failed to parse body:', parseErr, 'req.body type:', typeof req.body, 'isBuffer:', Buffer.isBuffer(req.body));
     res.status(400).json({ error: 'Invalid JSON body' });
+    return;
+  }
+
+  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  if (!token) {
+    res.status(401).json({ error: 'Missing authorization token.' });
+    return;
+  }
+
+  const serverClient = supabaseServer();
+  const { data: userData, error: authError } = await serverClient.auth.getUser(token);
+  if (authError || !userData.user) {
+    res.status(401).json({ error: 'Invalid or expired token.' });
+    return;
+  }
+
+  const { data: balanceData, error: balanceError } = await serverClient
+    .from('user_balances')
+    .select('tokens')
+    .eq('id', userData.user.id)
+    .maybeSingle();
+
+  if (balanceError || !balanceData || Number(balanceData.tokens) < LOW_BALANCE_THRESHOLD) {
+    res.status(402).json({ error: 'Insufficient balance. Please top up your account.' });
     return;
   }
 

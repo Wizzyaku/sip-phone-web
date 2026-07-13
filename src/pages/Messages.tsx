@@ -27,6 +27,9 @@ import { cn } from '../lib/utils';
 import { useAppStore, type Message, type MessageType } from '../store/appStore';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import { MobileMessages } from '../components/MobileMessages';
+import { LowBalanceModal } from '../components/LowBalanceModal';
+import { hasEnoughBalance } from '../lib/balance';
+import { supabase } from '../lib/supabase';
 
 interface SmsMessage {
   sid: string;
@@ -112,6 +115,7 @@ export function Messages() {
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeNumber, setComposeNumber] = useState('');
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
+  const [lowBalanceOpen, setLowBalanceOpen] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -221,14 +225,34 @@ export function Messages() {
       setError('No sender number configured. Go to Settings and verify your Telnyx number.');
       return;
     }
+    const balance = useAppStore.getState().balance;
+    if (!hasEnoughBalance(balance)) {
+      setLowBalanceOpen(true);
+      return;
+    }
     setSending(true);
     setError(null);
     try {
-      const res = await axios.post(`${API_URL}/send-sms`, {
-        to: to.trim(),
-        body: body.trim(),
-        from: telnyxNumber,
-      });
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      if (!token) {
+        setError('You must be signed in to send messages.');
+        setSending(false);
+        return;
+      }
+      const res = await axios.post(
+        `${API_URL}/send-sms`,
+        {
+          to: to.trim(),
+          body: body.trim(),
+          from: telnyxNumber,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       addStoreMessage({
         id: res.data.sid || crypto.randomUUID(),
         conversationId: getConversationId(telnyxNumber, to.trim()),
@@ -243,7 +267,11 @@ export function Messages() {
       setBody('');
       await fetchMessages();
     } catch (err) {
-      setError('Failed to send message');
+      if (axios.isAxiosError(err) && err.response?.status === 402) {
+        setLowBalanceOpen(true);
+      } else {
+        setError('Failed to send message');
+      }
     } finally {
       setSending(false);
     }
@@ -678,7 +706,11 @@ export function Messages() {
           </div>
         )}
       </section>
-
+      <LowBalanceModal
+        open={lowBalanceOpen}
+        onClose={() => setLowBalanceOpen(false)}
+        action="message"
+      />
         </div>
       )}
     </div>
