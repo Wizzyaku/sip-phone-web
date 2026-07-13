@@ -104,7 +104,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const korapayPayload = {
-      amount: amountMinor / 100,
+      amount: amountMinor,
       currency,
       reference,
       customer: { email, ...(name ? { name } : {}) },
@@ -112,7 +112,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       notification_url: notificationUrl,
       metadata: {
         userId,
-        tokens,
+        tokens: String(tokens),
       },
     };
     console.log('Korapay initialize payload:', JSON.stringify(korapayPayload));
