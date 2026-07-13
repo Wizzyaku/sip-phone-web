@@ -55,6 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const userId = userData.user.id;
     const email = userData.user.email || '';
+    const name = userData.user.user_metadata?.full_name as string | undefined;
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
     const packageIndex = Number(body.packageIndex);
     const customTokens = Number(body.customTokens);
@@ -102,31 +103,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
+    const korapayPayload = {
+      amount: amountMinor / 100,
+      currency,
+      reference,
+      customer: { email, ...(name ? { name } : {}) },
+      redirect_url: redirectUrl,
+      notification_url: notificationUrl,
+      metadata: {
+        userId,
+        tokens,
+      },
+    };
+    console.log('Korapay initialize payload:', JSON.stringify(korapayPayload));
+
     const response = await fetch('https://api.korapay.com/merchant/api/v1/charges/initialize', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${KORAPAY_SECRET_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        amount: amountMinor / 100,
-        currency,
-        reference,
-        customer: { email },
-        redirect_url: redirectUrl,
-        notification_url: notificationUrl,
-        metadata: {
-          userId,
-          tokens,
-        },
-      }),
+      body: JSON.stringify(korapayPayload),
     });
 
     const data = (await response.json()) as Record<string, unknown>;
 
     if (!response.ok) {
       console.error('Korapay initialize error:', data);
-      res.status(response.status).json({ error: 'Korapay charge initialization failed.' });
+      const korapayMessage = String(data.message || data.error || JSON.stringify(data));
+      res.status(response.status).json({
+        error: 'Korapay charge initialization failed.',
+        korapayMessage,
+        korapayData: data,
+      });
       return;
     }
 

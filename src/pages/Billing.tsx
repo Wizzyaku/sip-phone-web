@@ -105,9 +105,14 @@ export function Billing() {
         }),
       });
 
-      const data = (await response.json()) as { checkoutUrl?: string; reference?: string; error?: string };
+      const data = (await response.json()) as {
+        checkoutUrl?: string;
+        reference?: string;
+        error?: string;
+        korapayMessage?: string;
+      };
       if (!response.ok || data.error) {
-        throw new Error(data.error || 'Payment initialization failed.');
+        throw new Error(data.korapayMessage || data.error || 'Payment initialization failed.');
       }
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
