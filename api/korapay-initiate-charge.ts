@@ -55,7 +55,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const userId = userData.user.id;
     const email = userData.user.email || '';
-    const name = userData.user.user_metadata?.full_name as string | undefined;
+    const name =
+      (userData.user.user_metadata?.full_name as string | undefined) ||
+      (userData.user.user_metadata?.name as string | undefined) ||
+      email.split('@')[0] ||
+      'Customer';
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
     const packageIndex = Number(body.packageIndex);
     const customTokens = Number(body.customTokens);
@@ -82,10 +86,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const reference = `KPY-${Date.now()}-${randomUUID()}`;
+    const reference = `KPY${Date.now()}${randomUUID().replace(/-/g, '')}`;
     const origin = getOrigin(req);
     const redirectUrl = `${origin}/billing?reference=${encodeURIComponent(reference)}`;
-    const notificationUrl = `${origin}/api/korapay-webhook`;
 
     const { error: txError } = await serverClient.from('transactions').insert({
       user_id: userId,
@@ -107,9 +110,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       amount: amountMinor,
       currency,
       reference,
-      customer: { email, ...(name ? { name } : {}) },
+      customer: { email, name },
       redirect_url: redirectUrl,
-      notification_url: notificationUrl,
       metadata: {
         userId,
         tokens: String(tokens),
@@ -135,6 +137,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         error: 'Korapay charge initialization failed.',
         korapayMessage,
         korapayData: data,
+        sentPayload: korapayPayload,
       });
       return;
     }

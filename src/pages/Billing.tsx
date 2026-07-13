@@ -112,6 +112,7 @@ export function Billing() {
         korapayMessage?: string;
       };
       if (!response.ok || data.error) {
+        console.error('Korapay initiate response:', { status: response.status, data });
         throw new Error(data.korapayMessage || data.error || 'Payment initialization failed.');
       }
       if (data.checkoutUrl) {
