@@ -89,6 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const reference = `KPY${randomUUID().replace(/-/g, '').slice(0, 16)}`;
     const origin = getOrigin(req);
     const redirectUrl = `${origin}/billing?reference=${encodeURIComponent(reference)}`;
+    const notificationUrl = `${origin}/api/korapay-webhook`;
 
     const { error: txError } = await serverClient.from('transactions').insert({
       user_id: userId,
@@ -112,6 +113,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       reference,
       customer: { email, name },
       redirect_url: redirectUrl,
+      notification_url: notificationUrl,
       metadata: {
         userId,
         tokens: String(tokens),
