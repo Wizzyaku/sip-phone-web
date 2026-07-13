@@ -286,8 +286,10 @@ export const useAppStore = create<AppState>()(
       partialize: (state) => ({
         theme: state.theme,
       }),
-      onRehydrateStorage: () => {
-        useAppStore.getState().refreshBalance();
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.refreshBalance();
+        }
       },
     }
   )
