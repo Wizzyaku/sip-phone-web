@@ -1,12 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { randomUUID } from 'crypto';
+import { supabaseServer } from '../lib/supabase-server.js';
 
 const KORAPAY_SECRET_KEY = process.env.KORAPAY_SECRET_KEY ?? '';
-
-function getServerClient() {
-  const { supabaseServer } = require('../lib/supabase-server.js');
-  return supabaseServer();
-}
 
 const TOKEN_PACKAGES = [
   { tokens: 1000, label: '1,000 tokens', priceMinor: 100000, currency: 'NGN' },
@@ -43,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const serverClient = getServerClient();
+    const serverClient = supabaseServer();
 
     const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
     if (!token) {

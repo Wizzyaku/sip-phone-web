@@ -1,12 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createHmac } from 'crypto';
+import { supabaseServer } from '../lib/supabase-server.js';
 
 const KORAPAY_SECRET_KEY = process.env.KORAPAY_SECRET_KEY ?? '';
-
-function getServerClient() {
-  const { supabaseServer } = require('../lib/supabase-server.js');
-  return supabaseServer();
-}
 
 export const config = {
   api: {
@@ -46,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const serverClient = getServerClient();
+    const serverClient = supabaseServer();
 
     let body: Record<string, unknown>;
     try {
