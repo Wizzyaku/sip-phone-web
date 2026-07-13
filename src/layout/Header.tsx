@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Search, Bell, Moon, Sun, Check, X, Wallet, PhoneCall } from 'lucide-react';
 import { useAppStore, unreadCount } from '../store/appStore';
+import { formatTokens } from '../lib/balance';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
@@ -19,6 +20,8 @@ export function Header({ onMenuClick }: HeaderProps) {
   const markRead = useAppStore((s) => s.markNotificationRead);
   const dismiss = useAppStore((s) => s.dismissNotification);
   const user = useAppStore((s) => s.user);
+  const balance = useAppStore((s) => s.balance);
+  const balanceLoading = useAppStore((s) => s.balanceLoading);
   const unread = useAppStore(unreadCount);
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -68,7 +71,11 @@ export function Header({ onMenuClick }: HeaderProps) {
             }
           >
             <Wallet className="h-4 w-4" />
-            Tokens: 12,000
+            {balanceLoading || balance === null ? (
+              <span className="inline-block h-3 w-10 animate-pulse rounded bg-muted" />
+            ) : (
+              <>Tokens: {formatTokens(balance.tokens)}</>
+            )}
           </NavLink>
         </nav>
 

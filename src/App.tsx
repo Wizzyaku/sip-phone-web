@@ -7,6 +7,7 @@ import { Skeleton } from './components/ui/skeleton';
 import { Button } from './components/ui/button';
 import { initTheme, useAppStore } from './store/appStore';
 import { useNotifications } from './hooks/useNotifications';
+import { useBalance } from './hooks/useBalance';
 import { AuthRequired, PublicOnly } from './components/AuthRoute';
 import { supabase } from './lib/supabase';
 import { fetchProfile } from './lib/profile';
@@ -68,6 +69,7 @@ function AppProviders() {
   }, [setUser, setTelnyxNumber]);
 
   useNotifications();
+  useBalance();
 
   return <NotificationToast />;
 }

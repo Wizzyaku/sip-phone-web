@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useAppStore } from '../store/appStore';
+import { formatTokens } from '../lib/balance';
 import { cn } from '../lib/utils';
 
 function formatTime(date: string): string {
@@ -40,6 +41,8 @@ export function Dashboard() {
   const messages = useAppStore((s) => s.messages);
   const conversations = useAppStore((s) => s.conversations);
   const user = useAppStore((s) => s.user);
+  const balance = useAppStore((s) => s.balance);
+  const balanceLoading = useAppStore((s) => s.balanceLoading);
   const navigate = useNavigate();
 
   const trend = useMemo(() => buildTrend(messages), [messages]);
@@ -79,7 +82,13 @@ export function Dashboard() {
           </div>
           <div>
             <p className="text-primary/80 text-xs font-medium md:text-sm">Current Balance</p>
-            <p className="text-lg font-bold text-primary md:text-2xl">$240.50</p>
+            <p className="text-lg font-bold text-primary md:text-2xl">
+              {balanceLoading || balance === null ? (
+                <span className="inline-block h-5 w-16 animate-pulse rounded bg-muted" />
+              ) : (
+                formatTokens(balance.tokens)
+              )}
+            </p>
           </div>
         </div>
 
@@ -93,7 +102,13 @@ export function Dashboard() {
           </div>
           <div>
             <p className="text-primary/80 text-xs font-medium md:text-sm">Token Balance</p>
-            <p className="text-lg font-bold text-primary md:text-2xl">12,000</p>
+            <p className="text-lg font-bold text-primary md:text-2xl">
+              {balanceLoading || balance === null ? (
+                <span className="inline-block h-5 w-16 animate-pulse rounded bg-muted" />
+              ) : (
+                formatTokens(balance.tokens)
+              )}
+            </p>
           </div>
         </div>
 
@@ -125,7 +140,7 @@ export function Dashboard() {
             <span className="font-semibold text-xs text-foreground md:text-sm">Buy Number</span>
           </button>
           <button
-            onClick={() => navigate('/settings')}
+            onClick={() => navigate('/billing')}
             className="glass-card rounded-lg p-2.5 flex flex-col items-center justify-center gap-2 text-center hover:-translate-y-1 transition-all md:rounded-xl md:p-5 md:gap-3"
           >
             <div className="p-2 bg-primary/10 rounded-lg text-primary md:p-3 md:rounded-xl">

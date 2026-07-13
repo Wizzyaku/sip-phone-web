@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { fetchBalance, type Balance } from '../lib/balance';
 
 export interface User {
   name: string;
@@ -82,6 +83,8 @@ interface AppState {
   activeConversation: string | null;
   call: CallState;
   mediaUploads: MediaUpload[];
+  balance: Balance | null;
+  balanceLoading: boolean;
   setUser: (user: User) => void;
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   setTelnyxNumber: (number: string | null) => void;
@@ -102,6 +105,9 @@ interface AppState {
   removeMediaUpload: (id: string) => void;
   setMediaUploadError: (id: string, error: string) => void;
   clearMediaUploads: () => void;
+  setBalance: (balance: Balance | null) => void;
+  refreshBalance: () => Promise<void>;
+  incrementBalance: (tokens: number) => void;
 }
 
 function resolveTheme(theme: 'light' | 'dark' | 'system'): 'light' | 'dark' {
@@ -173,6 +179,8 @@ export const useAppStore = create<AppState>()(
         durationSeconds: 0,
       },
       mediaUploads: [],
+      balance: null,
+      balanceLoading: false,
       setUser: (user) => set({ user }),
       setTheme: (theme) => {
         const resolvedTheme = resolveTheme(theme);
@@ -259,12 +267,28 @@ export const useAppStore = create<AppState>()(
         });
       },
       clearMediaUploads: () => set({ mediaUploads: [] }),
+      setBalance: (balance) => set({ balance }),
+      refreshBalance: async () => {
+        set({ balanceLoading: true });
+        const balance = await fetchBalance();
+        set({ balance, balanceLoading: false });
+      },
+      incrementBalance: (tokens) => {
+        set((state) => ({
+          balance: state.balance
+            ? { ...state.balance, tokens: state.balance.tokens + tokens, updatedAt: new Date().toISOString() }
+            : { tokens, updatedAt: new Date().toISOString() },
+        }));
+      },
     }),
     {
       name: 'app-storage',
       partialize: (state) => ({
         theme: state.theme,
       }),
+      onRehydrateStorage: () => {
+        useAppStore.getState().refreshBalance();
+      },
     }
   )
 );

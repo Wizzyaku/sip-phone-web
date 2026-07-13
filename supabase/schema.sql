@@ -113,3 +113,115 @@ begin
     limit 1;
 end;
 $$ language plpgsql security definer;
+
+-- ------------------------------------------------------------
+-- 4. User wallet balance
+--    Stores token credits per authenticated user. Created on
+--    first profile insert if it does not already exist.
+-- ------------------------------------------------------------
+create table if not exists public.user_balances (
+  id uuid references auth.users(id) on delete cascade primary key,
+  tokens bigint not null default 0,
+  updated_at timestamp with time zone default now()
+);
+
+alter table public.user_balances enable row level security;
+
+drop policy if exists "Users can read own balance" on public.user_balances;
+create policy "Users can read own balance"
+  on public.user_balances
+  for select
+  using (auth.uid() = id);
+
+drop policy if exists "Users can insert own balance" on public.user_balances;
+create policy "Users can insert own balance"
+  on public.user_balances
+  for insert
+  with check (auth.uid() = id);
+
+drop policy if exists "Users can update own balance" on public.user_balances;
+create policy "Users can update own balance"
+  on public.user_balances
+  for update
+  using (auth.uid() = id);
+
+-- Only the service role / webhook should be able to credit tokens directly.
+-- Application updates should go through a serverless function or RPC.
+
+-- Auto-create a balance row for every new profile.
+create or replace function public.create_user_balance()
+returns trigger as $$
+begin
+  insert into public.user_balances (id, tokens)
+  values (new.id, 0)
+  on conflict (id) do nothing;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists create_user_balance_on_profile on public.profiles;
+create trigger create_user_balance_on_profile
+  after insert on public.profiles
+  for each row execute procedure public.create_user_balance();
+
+-- ------------------------------------------------------------
+-- 5. Transactions / payment history
+--    Records every top-up attempt and final status.
+-- ------------------------------------------------------------
+create table if not exists public.transactions (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  reference text not null unique,
+  tokens bigint not null,
+  amount_minor bigint not null default 0,
+  currency text not null default 'NGN',
+  provider text not null default 'korapay',
+  status text not null default 'pending',
+  metadata jsonb default null,
+  created_at timestamp with time zone default now(),
+  updated_at timestamp with time zone default now()
+);
+
+alter table public.transactions enable row level security;
+
+drop policy if exists "Users can read own transactions" on public.transactions;
+create policy "Users can read own transactions"
+  on public.transactions
+  for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert own transactions" on public.transactions;
+create policy "Users can insert own transactions"
+  on public.transactions
+  for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users cannot update own transactions" on public.transactions;
+create policy "Users cannot update own transactions"
+  on public.transactions
+  for update
+  using (false);
+
+drop trigger if exists user_balances_updated_at on public.user_balances;
+create trigger user_balances_updated_at
+  before update on public.user_balances
+  for each row execute procedure public.handle_updated_at();
+
+drop trigger if exists transactions_updated_at on public.transactions;
+create trigger transactions_updated_at
+  before update on public.transactions
+  for each row execute procedure public.handle_updated_at();
+
+-- Function to safely credit tokens by a server-side caller.
+create or replace function public.credit_tokens(p_user_id uuid, p_tokens bigint, p_reference text)
+returns void as $$
+begin
+  insert into public.user_balances (id, tokens)
+  values (p_user_id, p_tokens)
+  on conflict (id) do update set tokens = public.user_balances.tokens + p_tokens;
+
+  update public.transactions
+  set status = 'success', updated_at = now()
+  where reference = p_reference and user_id = p_user_id;
+end;
+$$ language plpgsql security definer;
