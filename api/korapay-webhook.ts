@@ -1,8 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createHmac } from 'crypto';
-import { supabaseServer } from '../lib/supabase-server.js';
 
 const KORAPAY_SECRET_KEY = process.env.KORAPAY_SECRET_KEY ?? '';
+
+function getServerClient() {
+  const { supabaseServer } = require('../lib/supabase-server.js');
+  return supabaseServer();
+}
 
 export const config = {
   api: {
@@ -36,22 +40,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  if (!KORAPAY_SECRET_KEY) {
-    res.status(503).json({ error: 'Korapay is not configured on this server.' });
-    return;
-  }
-
-  let body: Record<string, unknown>;
   try {
-    body = parseBody(req);
-  } catch (parseErr) {
-    console.error('Failed to parse webhook body:', parseErr);
-    res.status(400).json({ error: 'Invalid JSON body' });
-    return;
-  }
+    if (!KORAPAY_SECRET_KEY) {
+      res.status(503).json({ error: 'Korapay is not configured on this server.' });
+      return;
+    }
 
-  const signature = req.headers['x-korapay-signature'] as string | undefined;
-  const data = body.data as Record<string, unknown> | undefined;
+    const serverClient = getServerClient();
+
+    let body: Record<string, unknown>;
+    try {
+      body = parseBody(req);
+    } catch (parseErr) {
+      console.error('Failed to parse webhook body:', parseErr);
+      res.status(400).json({ error: 'Invalid JSON body' });
+      return;
+    }
+
+    const signature = req.headers['x-korapay-signature'] as string | undefined;
+    const data = body.data as Record<string, unknown> | undefined;
 
   if (!data) {
     res.status(400).json({ error: 'Missing data object.' });
@@ -81,12 +88,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  // Lookup the pending transaction to get the user and token amount.
-  const { data: txRows, error: txError } = await supabaseServer
-    .from('transactions')
-    .select('id, user_id, tokens, status')
-    .eq('reference', reference)
-    .limit(1);
+    // Lookup the pending transaction to get the user and token amount.
+    const { data: txRows, error: txError } = await serverClient
+      .from('transactions')
+      .select('id, user_id, tokens, status')
+      .eq('reference', reference)
+      .limit(1);
 
   if (txError) {
     console.error('Failed to lookup transaction:', txError.message);
@@ -101,13 +108,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  if (transaction.status === 'success') {
-    res.status(200).json({ received: true, credited: false, reason: 'already processed' });
-    return;
-  }
+    if (transaction.status === 'success') {
+      res.status(200).json({ received: true, credited: false, reason: 'already processed' });
+      return;
+    }
 
-  try {
-    await supabaseServer.rpc('credit_tokens', {
+    await serverClient.rpc('credit_tokens', {
       p_user_id: transaction.user_id,
       p_tokens: transaction.tokens,
       p_reference: reference,
@@ -115,8 +121,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     res.status(200).json({ received: true, credited: true, tokens: transaction.tokens });
   } catch (err) {
-    const error = err as Error;
-    console.error('Failed to credit tokens via webhook:', error);
-    res.status(500).json({ error: 'Failed to credit tokens.' });
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error('Korapay webhook error:', error);
+    res.status(500).json({ error: error.message || 'Internal server error.' });
   }
 }

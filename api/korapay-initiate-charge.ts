@@ -1,8 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { randomUUID } from 'crypto';
-import { supabaseServer } from '../lib/supabase-server.js';
 
 const KORAPAY_SECRET_KEY = process.env.KORAPAY_SECRET_KEY ?? '';
+
+function getServerClient() {
+  const { supabaseServer } = require('../lib/supabase-server.js');
+  return supabaseServer();
+}
 
 const TOKEN_PACKAGES = [
   { tokens: 1000, label: '1,000 tokens', priceMinor: 100000, currency: 'NGN' },
@@ -33,73 +37,75 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  if (!KORAPAY_SECRET_KEY) {
-    res.status(503).json({ error: 'Korapay is not configured on this server.' });
-    return;
-  }
-
-  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  if (!token) {
-    res.status(401).json({ error: 'Missing authorization token.' });
-    return;
-  }
-
-  const { data: userData, error: authError } = await supabaseServer.auth.getUser(token);
-  if (authError || !userData.user) {
-    res.status(401).json({ error: 'Invalid or expired token.' });
-    return;
-  }
-
-  const userId = userData.user.id;
-  const email = userData.user.email || '';
-  const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
-  const packageIndex = Number(body.packageIndex);
-  const customTokens = Number(body.customTokens);
-
-  let tokens = 0;
-  let amountMinor = 0;
-  let currency = 'NGN';
-
-  if (Number.isFinite(customTokens) && customTokens > 0) {
-    tokens = Math.floor(customTokens);
-    // Default rate: 100 NGN per 100 tokens = 1 NGN per token.
-    amountMinor = tokens * 100;
-  } else if (
-    Number.isFinite(packageIndex) &&
-    packageIndex >= 0 &&
-    packageIndex < TOKEN_PACKAGES.length
-  ) {
-    const pkg = TOKEN_PACKAGES[packageIndex];
-    tokens = pkg.tokens;
-    amountMinor = pkg.priceMinor;
-    currency = pkg.currency;
-  } else {
-    res.status(400).json({ error: 'Invalid package selection.' });
-    return;
-  }
-
-  const reference = `KPY-${Date.now()}-${randomUUID()}`;
-  const origin = getOrigin(req);
-  const redirectUrl = `${origin}/billing?reference=${encodeURIComponent(reference)}`;
-  const notificationUrl = `${origin}/api/korapay-webhook`;
-
-  const { error: txError } = await supabaseServer.from('transactions').insert({
-    user_id: userId,
-    reference,
-    tokens,
-    amount_minor: amountMinor,
-    currency,
-    provider: 'korapay',
-    status: 'pending',
-  });
-
-  if (txError) {
-    console.error('Failed to create transaction:', txError.message);
-    res.status(500).json({ error: 'Failed to create transaction record.' });
-    return;
-  }
-
   try {
+    if (!KORAPAY_SECRET_KEY) {
+      res.status(503).json({ error: 'Korapay is not configured on this server.' });
+      return;
+    }
+
+    const serverClient = getServerClient();
+
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    if (!token) {
+      res.status(401).json({ error: 'Missing authorization token.' });
+      return;
+    }
+
+    const { data: userData, error: authError } = await serverClient.auth.getUser(token);
+    if (authError || !userData.user) {
+      res.status(401).json({ error: 'Invalid or expired token.' });
+      return;
+    }
+
+    const userId = userData.user.id;
+    const email = userData.user.email || '';
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
+    const packageIndex = Number(body.packageIndex);
+    const customTokens = Number(body.customTokens);
+
+    let tokens = 0;
+    let amountMinor = 0;
+    let currency = 'NGN';
+
+    if (Number.isFinite(customTokens) && customTokens > 0) {
+      tokens = Math.floor(customTokens);
+      // Default rate: 100 NGN per 100 tokens = 1 NGN per token.
+      amountMinor = tokens * 100;
+    } else if (
+      Number.isFinite(packageIndex) &&
+      packageIndex >= 0 &&
+      packageIndex < TOKEN_PACKAGES.length
+    ) {
+      const pkg = TOKEN_PACKAGES[packageIndex];
+      tokens = pkg.tokens;
+      amountMinor = pkg.priceMinor;
+      currency = pkg.currency;
+    } else {
+      res.status(400).json({ error: 'Invalid package selection.' });
+      return;
+    }
+
+    const reference = `KPY-${Date.now()}-${randomUUID()}`;
+    const origin = getOrigin(req);
+    const redirectUrl = `${origin}/billing?reference=${encodeURIComponent(reference)}`;
+    const notificationUrl = `${origin}/api/korapay-webhook`;
+
+    const { error: txError } = await serverClient.from('transactions').insert({
+      user_id: userId,
+      reference,
+      tokens,
+      amount_minor: amountMinor,
+      currency,
+      provider: 'korapay',
+      status: 'pending',
+    });
+
+    if (txError) {
+      console.error('Failed to create transaction:', txError.message);
+      res.status(500).json({ error: 'Failed to create transaction record.' });
+      return;
+    }
+
     const response = await fetch('https://api.korapay.com/merchant/api/v1/charges/initialize', {
       method: 'POST',
       headers: {
@@ -137,8 +143,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     res.status(200).json({ checkoutUrl, reference, tokens });
   } catch (err) {
-    const error = err as Error;
-    console.error('Korapay initialize exception:', error);
-    res.status(500).json({ error: error.message });
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error('Korapay initiate-charge error:', error);
+    res.status(500).json({ error: error.message || 'Internal server error.' });
   }
 }
