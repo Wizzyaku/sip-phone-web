@@ -86,7 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const reference = `KPY${Date.now()}${randomUUID().replace(/-/g, '')}`;
+    const reference = `KPY${randomUUID().replace(/-/g, '').slice(0, 16)}`;
     const origin = getOrigin(req);
     const redirectUrl = `${origin}/billing?reference=${encodeURIComponent(reference)}`;
 
@@ -107,7 +107,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const korapayPayload = {
-      amount: amountMinor,
+      amount: amountMinor / 100,
       currency,
       reference,
       customer: { email, name },

@@ -11,44 +11,22 @@ const name = process.env.TEST_NAME || 'Test Customer';
 
 const variations = [
   {
-    label: 'Minimal: amount in kobo',
+    label: 'Minimal: 1000 NGN',
     payload: {
-      amount: 100000,
+      amount: 1000,
       currency: 'NGN',
-      reference: `KPY-${Date.now()}-${randomUUID()}`,
+      reference: `KPY${randomUUID().replace(/-/g, '').slice(0, 16)}`,
       customer: { email },
     },
   },
   {
-    label: 'Minimal: amount in Naira',
+    label: 'Full payload matching app: 1000 NGN',
     payload: {
       amount: 1000,
       currency: 'NGN',
-      reference: `KPY-${Date.now()}-${randomUUID()}`,
-      customer: { email },
-    },
-  },
-  {
-    label: 'With name + metadata + urls',
-    payload: {
-      amount: 100000,
-      currency: 'NGN',
-      reference: `KPY-${Date.now()}-${randomUUID()}`,
+      reference: `KPY${randomUUID().replace(/-/g, '').slice(0, 16)}`,
       customer: { email, name },
       redirect_url: 'https://sip-phone-web.vercel.app/billing',
-      notification_url: 'https://sip-phone-web.vercel.app/api/korapay-webhook',
-      metadata: { userId: 'test-user-id', tokens: '1000' },
-    },
-  },
-  {
-    label: 'With name + metadata + urls, amount in Naira',
-    payload: {
-      amount: 1000,
-      currency: 'NGN',
-      reference: `KPY-${Date.now()}-${randomUUID()}`,
-      customer: { email, name },
-      redirect_url: 'https://sip-phone-web.vercel.app/billing',
-      notification_url: 'https://sip-phone-web.vercel.app/api/korapay-webhook',
       metadata: { userId: 'test-user-id', tokens: '1000' },
     },
   },
