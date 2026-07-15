@@ -140,6 +140,22 @@ export function Messages() {
     );
   }, [conversations, search, filter]);
 
+  useEffect(() => {
+    // If activeId looks like a phone number but doesn't match an existing conversation ID,
+    // it means we navigated from Contacts to start a new chat.
+    if (activeId && !conversations.some(c => c.id === activeId)) {
+      setComposeNumber(activeId);
+      setComposeOpen(true);
+      setMobileChatOpen(true); // Ensure mobile chat view opens
+    } else if (activeId) {
+      const conversation = conversations.find(c => c.id === activeId);
+      if (conversation) {
+        setTo(conversation.contact);
+        setMobileChatOpen(true);
+      }
+    }
+  }, [activeId, conversations]);
+
   const fetchMessages = useCallback(async () => {
     setLoading(true);
     setError(null);

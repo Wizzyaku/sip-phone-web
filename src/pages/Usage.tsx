@@ -147,37 +147,39 @@ export function Usage() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 pb-24 md:pb-6">
       {/* Header & Controls */}
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+      <div className="flex flex-col justify-between gap-3 md:gap-4 md:flex-row md:items-center">
         <div className="hidden md:block">
           <h1 className="text-2xl font-bold tracking-tight">Usage Analytics</h1>
           <p className="text-sm text-muted-foreground">Monitor your global communication performance and token spend.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-background px-4 py-2 text-sm transition-all hover:bg-muted">
-            <CalendarDays className="h-4 w-4" />
-            <span>Last 30 Days</span>
-            <ChevronDown className="h-4 w-4" />
+        <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
+          <div className="flex-1 md:flex-none flex cursor-pointer items-center justify-between md:justify-start gap-2 rounded-lg md:rounded-xl border border-border bg-background px-3 py-1.5 md:px-4 md:py-2 text-[11px] md:text-sm transition-all hover:bg-muted font-medium">
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <CalendarDays className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span>Last 30 Days</span>
+            </div>
+            <ChevronDown className="h-3.5 w-3.5 md:h-4 md:w-4" />
           </div>
-          <div className="flex overflow-hidden rounded-xl border border-primary/20 shadow-sm">
+          <div className="flex overflow-hidden rounded-lg md:rounded-xl border border-primary/20 shadow-sm shrink-0">
             <Button
               variant="ghost"
               size="sm"
               className={cn(
-                'rounded-none border-r border-primary/20 px-4',
+                'rounded-none border-r border-primary/20 px-2.5 md:px-4 h-8 md:h-9 text-[10px] md:text-sm',
                 exportFormat === 'csv' ? 'bg-primary/10 text-primary' : 'text-primary'
               )}
               onClick={() => setExportFormat('csv')}
             >
-              <Download className="mr-1 h-4 w-4" />
+              <Download className="md:mr-1 mr-0.5 h-3.5 w-3.5 md:h-4 md:w-4" />
               CSV
             </Button>
             <Button
               variant="ghost"
               size="sm"
               className={cn(
-                'rounded-none px-4',
+                'rounded-none px-2.5 md:px-4 h-8 md:h-9 text-[10px] md:text-sm',
                 exportFormat === 'pdf' ? 'bg-primary/10 text-primary' : 'text-primary'
               )}
               onClick={() => setExportFormat('pdf')}
@@ -189,15 +191,15 @@ export function Usage() {
       </div>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-4">
         {kpiData.map((kpi) => {
           const Icon = kpi.icon;
           return (
-            <Card key={kpi.label} className="glass-card">
-              <CardContent className="p-5">
-                <div className="mb-3 flex items-start justify-between">
-                  <div className={cn('rounded-lg p-2', kpi.iconColor)}>
-                    <Icon className="h-5 w-5" />
+            <Card key={kpi.label} className="glass-card rounded-xl md:rounded-2xl border-border/50">
+              <CardContent className="p-3 md:p-5">
+                <div className="mb-2 md:mb-3 flex items-start justify-between">
+                  <div className={cn('rounded-[0.5rem] md:rounded-lg p-1.5 md:p-2', kpi.iconColor)}>
+                    <Icon className="h-4 w-4 md:h-5 md:w-5" />
                   </div>
                   <div
                     className={cn(
@@ -222,23 +224,23 @@ export function Usage() {
 
       {/* Middle Section: Chart + Donut */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="glass-card lg:col-span-2">
-          <CardContent className="p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <h4 className="font-semibold">Consumption Analytics</h4>
-              <div className="flex gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-primary" />
-                  <span className="text-xs text-muted-foreground">Calls</span>
+        <Card className="glass-card rounded-xl md:rounded-2xl border-border/50 lg:col-span-2">
+          <CardContent className="p-4 md:p-5">
+            <div className="mb-3 md:mb-4 flex items-center justify-between">
+              <h4 className="text-sm md:text-base font-semibold">Consumption Analytics</h4>
+              <div className="flex gap-2 md:gap-4">
+                <div className="flex items-center gap-1.5 md:gap-2">
+                  <div className="h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-primary" />
+                  <span className="text-[10px] md:text-xs text-muted-foreground">Calls</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-secondary" />
-                  <span className="text-xs text-muted-foreground">SMS</span>
+                <div className="flex items-center gap-1.5 md:gap-2">
+                  <div className="h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-secondary" />
+                  <span className="text-[10px] md:text-xs text-muted-foreground">SMS</span>
                 </div>
               </div>
             </div>
-            <div className="relative h-[300px] w-full overflow-hidden rounded-lg border border-border/30 bg-[radial-gradient(circle,#e2e8f0_1px,transparent_1px)] [background-size:24px_24px]">
-              <svg className="absolute bottom-0 left-0 h-full w-full p-4" preserveAspectRatio="none" viewBox="0 0 100 100">
+            <div className="relative h-[200px] md:h-[300px] w-full overflow-hidden rounded-lg border border-border/30 bg-[radial-gradient(circle,#e2e8f0_1px,transparent_1px)] [background-size:24px_24px]">
+              <svg className="absolute bottom-0 left-0 h-full w-full p-2 md:p-4" preserveAspectRatio="none" viewBox="0 0 100 100">
                 <path
                   d="M0,80 Q10,75 20,85 T40,60 T60,70 T80,40 T100,50 L100,100 L0,100 Z"
                   fill="rgba(66, 65, 188, 0.1)"
@@ -261,7 +263,7 @@ export function Usage() {
                   className="text-secondary"
                 />
               </svg>
-              <div className="absolute inset-x-4 bottom-2 flex justify-between text-[10px] font-medium uppercase tracking-tighter text-muted-foreground">
+              <div className="absolute inset-x-2 md:inset-x-4 bottom-1 md:bottom-2 flex justify-between text-[8px] md:text-[10px] font-medium uppercase tracking-tighter text-muted-foreground">
                 <span>Week 1</span>
                 <span>Week 2</span>
                 <span>Week 3</span>
@@ -271,11 +273,11 @@ export function Usage() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card">
-          <CardContent className="flex h-full flex-col p-5">
-            <h4 className="mb-4 font-semibold">Token Usage Breakdown</h4>
+        <Card className="glass-card rounded-xl md:rounded-2xl border-border/50">
+          <CardContent className="flex h-full flex-col p-4 md:p-5">
+            <h4 className="mb-2 md:mb-4 text-sm md:text-base font-semibold">Token Usage Breakdown</h4>
             <div className="flex flex-1 flex-col items-center justify-center">
-              <div className="relative flex h-44 w-44 items-center justify-center">
+              <div className="relative flex h-32 w-32 md:h-44 md:w-44 items-center justify-center">
                 <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
                   <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="16" className="text-muted" />
                   <circle
@@ -301,18 +303,18 @@ export function Usage() {
                   />
                 </svg>
                 <div className="absolute text-center">
-                  <p className="text-2xl font-bold">38k</p>
-                  <p className="text-xs text-muted-foreground">Tokens</p>
+                  <p className="text-lg md:text-2xl font-bold">38k</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground">Tokens</p>
                 </div>
               </div>
               <div className="mt-4 w-full space-y-2">
                 {tokenBreakdown.map((item) => (
                   <div key={item.label} className="flex items-center justify-between px-2">
                     <div className="flex items-center gap-2">
-                      <div className={cn('h-3 w-3 rounded-full', item.color)} />
-                      <span className="text-sm">{item.label}</span>
+                      <div className={cn('h-2.5 w-2.5 md:h-3 md:w-3 rounded-full', item.color)} />
+                      <span className="text-[11px] md:text-sm">{item.label}</span>
                     </div>
-                    <span className="text-sm font-semibold">{item.percent}%</span>
+                    <span className="text-[11px] md:text-sm font-semibold">{item.percent}%</span>
                   </div>
                 ))}
               </div>
@@ -323,15 +325,15 @@ export function Usage() {
 
       {/* Lower Section: Heatmap + Geography */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card className="glass-card">
-          <CardContent className="p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <h4 className="font-semibold">Activity Heatmap</h4>
-              <span className="text-xs text-muted-foreground">Timezone: UTC -5</span>
+        <Card className="glass-card rounded-xl md:rounded-2xl border-border/50">
+          <CardContent className="p-4 md:p-5">
+            <div className="mb-3 md:mb-4 flex items-center justify-between">
+              <h4 className="text-sm md:text-base font-semibold">Activity Heatmap</h4>
+              <span className="text-[10px] md:text-xs text-muted-foreground">Timezone: UTC -5</span>
             </div>
             <div className="space-y-4">
               <div
-                className="grid h-32 gap-1"
+                className="grid h-24 md:h-32 gap-0.5 md:gap-1"
                 style={{ gridTemplateColumns: 'repeat(24, 1fr)' }}
               >
                 {heatmapData.flat().map((value, i) => (
@@ -339,52 +341,52 @@ export function Usage() {
                     key={i}
                     title={`Hour ${i % 24}:00 - Volume ${value}`}
                     className={cn(
-                      'rounded-sm transition-transform hover:z-10 hover:scale-110',
+                      'rounded-[1px] md:rounded-sm transition-transform hover:z-10 hover:scale-110',
                       getHeatmapClass(value)
                     )}
                   />
                 ))}
               </div>
-              <div className="flex justify-between px-1 text-[10px] text-muted-foreground">
-                <span>12 AM</span>
-                <span>4 AM</span>
-                <span>8 AM</span>
-                <span>12 PM</span>
-                <span>4 PM</span>
-                <span>8 PM</span>
-                <span>11 PM</span>
+              <div className="flex justify-between px-1 text-[8px] md:text-[10px] text-muted-foreground">
+                <span className="hidden md:inline">12 AM</span><span className="md:hidden">00h</span>
+                <span className="hidden md:inline">4 AM</span><span className="md:hidden">04h</span>
+                <span className="hidden md:inline">8 AM</span><span className="md:hidden">08h</span>
+                <span className="hidden md:inline">12 PM</span><span className="md:hidden">12h</span>
+                <span className="hidden md:inline">4 PM</span><span className="md:hidden">16h</span>
+                <span className="hidden md:inline">8 PM</span><span className="md:hidden">20h</span>
+                <span className="hidden md:inline">11 PM</span><span className="md:hidden">23h</span>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-[10px] font-bold uppercase text-muted-foreground">Usage Intensity</span>
-                <div className="flex gap-1">
-                  <div className="h-4 w-4 rounded bg-primary/10" />
-                  <div className="h-4 w-4 rounded bg-primary/30" />
-                  <div className="h-4 w-4 rounded bg-primary/60" />
-                  <div className="h-4 w-4 rounded bg-primary" />
+              <div className="flex items-center gap-2 md:gap-3">
+                <span className="text-[9px] md:text-[10px] font-bold uppercase text-muted-foreground">Usage Intensity</span>
+                <div className="flex gap-0.5 md:gap-1">
+                  <div className="h-3 w-3 md:h-4 md:w-4 rounded-[2px] md:rounded bg-primary/10" />
+                  <div className="h-3 w-3 md:h-4 md:w-4 rounded-[2px] md:rounded bg-primary/30" />
+                  <div className="h-3 w-3 md:h-4 md:w-4 rounded-[2px] md:rounded bg-primary/60" />
+                  <div className="h-3 w-3 md:h-4 md:w-4 rounded-[2px] md:rounded bg-primary" />
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card">
-          <CardContent className="p-5">
-            <h4 className="mb-4 font-semibold">Geographic Distribution</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="relative h-40 overflow-hidden rounded-xl border border-border/30 bg-muted">
+        <Card className="glass-card rounded-xl md:rounded-2xl border-border/50">
+          <CardContent className="p-4 md:p-5">
+            <h4 className="mb-3 md:mb-4 text-sm md:text-base font-semibold">Geographic Distribution</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="relative h-32 md:h-40 overflow-hidden rounded-xl border border-border/30 bg-muted">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Globe className="h-12 w-12 text-primary/40" />
+                  <Globe className="h-10 w-10 md:h-12 md:w-12 text-primary/40" />
                 </div>
               </div>
-              <div className="flex flex-col justify-center gap-3">
+              <div className="flex flex-col justify-center gap-2 md:gap-3">
                 {geographicData.map((item) => (
                   <div key={item.region} className="space-y-1">
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{item.region}</span>
-                      <span>{item.percent}%</span>
+                    <div className="flex items-center justify-between text-[11px] md:text-sm">
+                      <span className="font-medium text-muted-foreground">{item.region}</span>
+                      <span className="font-bold">{item.percent}%</span>
                     </div>
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                      <div className="h-full bg-primary" style={{ width: `${item.percent}%` }} />
+                      <div className="h-full bg-primary/60" style={{ width: `${item.percent}%` }} />
                     </div>
                   </div>
                 ))}
@@ -395,54 +397,48 @@ export function Usage() {
       </div>
 
       {/* Top Contacts Table */}
-      <Card className="glass-card overflow-hidden">
-        <div className="flex items-center justify-between border-b border-border/30 p-5">
-          <h4 className="font-semibold">Top Contacts</h4>
-          <button className="text-sm text-primary hover:underline">View All Contacts</button>
+      <Card className="glass-card rounded-xl md:rounded-2xl border-border/50 overflow-hidden">
+        <div className="flex items-center justify-between border-b border-border/30 p-3 md:p-5">
+          <h4 className="text-sm md:text-base font-semibold">Top Contacts</h4>
+          <button className="text-[10px] md:text-sm font-semibold text-primary hover:underline">View All</button>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left">
-            <thead className="bg-muted text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <thead className="bg-muted text-[10px] md:text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-5 py-4">Contact</th>
-                <th className="px-5 py-4">Region</th>
-                <th className="px-5 py-4">Volume</th>
-                <th className="px-5 py-4">Total Duration</th>
-                <th className="px-5 py-4">Trend</th>
-                <th className="px-5 py-4 text-right">Actions</th>
+                <th className="px-3 md:px-5 py-2.5 md:py-4 whitespace-nowrap">Contact</th>
+                <th className="px-3 md:px-5 py-2.5 md:py-4 whitespace-nowrap">Region</th>
+                <th className="px-3 md:px-5 py-2.5 md:py-4 whitespace-nowrap">Volume</th>
+                <th className="px-3 md:px-5 py-2.5 md:py-4 whitespace-nowrap hidden md:table-cell">Duration</th>
+                <th className="px-3 md:px-5 py-2.5 md:py-4 whitespace-nowrap text-right">Trend</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/30">
               {topContacts.map((contact) => (
                 <tr key={contact.id} className="group transition-colors hover:bg-primary/5">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className={cn('flex h-10 w-10 items-center justify-center rounded-full font-bold', contact.color)}>
+                  <td className="px-3 md:px-5 py-2 md:py-4">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <div className={cn('flex h-8 w-8 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-full text-[10px] md:text-xs font-bold', contact.color)}>
                         {contact.initials}
                       </div>
-                      <div>
-                        <div className="font-semibold">{contact.name}</div>
-                        <div className="text-xs text-muted-foreground">{contact.number}</div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-xs md:text-sm truncate">{contact.name}</div>
+                        <div className="text-[9px] md:text-xs text-muted-foreground truncate">{contact.number}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-5 py-4 text-sm text-muted-foreground">{contact.region}</td>
-                  <td className="px-5 py-4 text-sm">{contact.volume}</td>
-                  <td className="px-5 py-4 text-sm">{contact.duration}</td>
-                  <td className="px-5 py-4">
+                  <td className="px-3 md:px-5 py-2 md:py-4 text-[11px] md:text-sm text-muted-foreground whitespace-nowrap">{contact.region}</td>
+                  <td className="px-3 md:px-5 py-2 md:py-4 text-[11px] md:text-sm font-medium whitespace-nowrap">{contact.volume}</td>
+                  <td className="px-3 md:px-5 py-2 md:py-4 text-[11px] md:text-sm font-medium whitespace-nowrap hidden md:table-cell">{contact.duration}</td>
+                  <td className="px-3 md:px-5 py-2 md:py-4 text-right whitespace-nowrap">
                     <span
                       className={cn(
-                        'rounded-full px-2 py-1 text-[10px] font-bold',
+                        'rounded-full px-1.5 md:px-2 py-0.5 md:py-1 text-[9px] md:text-[10px] font-bold inline-block',
                         contact.trendUp ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                       )}
                     >
                       {contact.trend}
                     </span>
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <button className="text-muted-foreground transition-colors group-hover:text-primary">
-                      <MoreVertical className="h-4 w-4" />
-                    </button>
                   </td>
                 </tr>
               ))}

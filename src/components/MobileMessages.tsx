@@ -269,7 +269,7 @@ export function MobileMessages(props: MobileMessagesProps) {
         {/* Floating new message button */}
         <button
           onClick={() => props.setComposeOpen(true)}
-          className="absolute bottom-5 right-4 z-10 flex h-14 w-14 items-center justify-center rounded-[20px] bg-primary text-primary-foreground shadow-[0_8px_20px_rgba(91,91,214,0.4)] transition-transform active:scale-90"
+          className="absolute bottom-20 right-4 z-[60] flex h-14 w-14 items-center justify-center rounded-[20px] bg-primary text-primary-foreground shadow-[0_8px_20px_rgba(91,91,214,0.4)] transition-transform active:scale-90"
         >
           <PenSquare className="h-6 w-6" />
         </button>

@@ -44,66 +44,68 @@ export default function BuyNumber() {
   const setupTotal = selectedItems.reduce((acc, curr) => acc + curr.setupFee, 0);
 
   return (
-    <div className="flex-1 w-full p-2 md:p-4 pb-4 flex flex-col gap-3 md:gap-4 overflow-y-auto custom-scrollbar">
-      {/* Header */}
-      <div className="flex flex-row items-center md:items-end justify-between gap-3 shrink-0">
-        <div>
+    <div className="flex-1 w-full p-2 md:p-4 pb-4 flex flex-col gap-3 md:gap-4 relative">
+      {/* Sticky Header & Filter Section */}
+      <div className="sticky top-0 z-30 flex flex-col gap-3 -mx-2 md:-mx-4 px-2 md:px-4 pt-2 md:pt-4 pb-2 bg-background/95 backdrop-blur-md shadow-sm border-b border-border/50">
+        {/* Header */}
+        <div className="shrink-0 flex flex-row items-center md:items-end justify-between gap-3">
+          <div>
+            <button 
+              onClick={() => navigate(-1)} 
+              className="mb-1.5 flex items-center gap-1 text-[10px] md:text-xs font-semibold text-primary hover:underline"
+            >
+              <ChevronRight className="h-3 w-3 md:h-4 md:w-4 rotate-180" />
+              Back to Numbers
+            </button>
+            <div className="hidden md:block">
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">Buy Virtual Numbers</h1>
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5">Search our global inventory of voice and SMS capable numbers.</p>
+            </div>
+          </div>
+          
+          {/* Cart Button */}
           <button 
-            onClick={() => navigate(-1)} 
-            className="mb-1.5 flex items-center gap-1 text-[10px] md:text-xs font-semibold text-primary hover:underline"
+            onClick={() => setIsCartOpen(true)}
+            className="relative flex items-center justify-center gap-2 bg-primary text-primary-foreground px-3 py-2 md:px-4 md:py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md hover:shadow-lg transition-all"
           >
-            <ChevronRight className="h-3 w-3 md:h-4 md:w-4 rotate-180" />
-            Back to Numbers
+            <ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />
+            <span className="hidden sm:inline">View Cart</span>
+            {selectedCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 md:static md:-top-auto md:-right-auto bg-white text-primary h-4 w-4 md:h-5 md:w-5 md:px-1.5 md:py-0.5 rounded-full md:rounded-md text-[10px] font-bold flex items-center justify-center">
+                {selectedCount}
+              </span>
+            )}
           </button>
-          <div className="hidden md:block">
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">Buy Virtual Numbers</h1>
-            <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5">Search our global inventory of voice and SMS capable numbers.</p>
+        </div>
+
+        {/* Filter Bar */}
+        <div className="glass-card rounded-xl p-2.5 md:p-3 flex flex-col md:flex-row flex-wrap items-stretch md:items-center gap-2.5 shrink-0 bg-background/80">
+          <div className="flex-1 min-w-[150px]">
+            <div className="relative">
+              <Globe className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input className="w-full pl-8 h-8 text-xs bg-background/50 rounded-lg" placeholder="Country or area code (e.g. US, 212)" />
+            </div>
+          </div>
+          <div className="w-full md:w-auto">
+            <select className="flex h-8 w-full md:w-auto min-w-[120px] rounded-lg border border-input bg-background/50 px-2.5 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary">
+              <option>All Types</option>
+              <option>Local</option>
+              <option>Toll-Free</option>
+              <option>Mobile</option>
+            </select>
+          </div>
+          <div className="flex gap-1.5">
+            <button className="px-2.5 py-1.5 border border-primary bg-primary/10 text-primary rounded-lg text-[10px] font-semibold transition-all">Voice</button>
+            <button className="px-2.5 py-1.5 border border-border bg-background/50 hover:border-primary transition-all rounded-lg text-[10px] font-medium">SMS</button>
+            <button className="px-2.5 py-1.5 border border-border bg-background/50 hover:border-primary transition-all rounded-lg text-[10px] font-medium">MMS</button>
           </div>
         </div>
-        
-        {/* Cart Button */}
-        <button 
-          onClick={() => setIsCartOpen(true)}
-          className="relative flex items-center justify-center gap-2 bg-primary text-primary-foreground px-3 py-2 md:px-4 md:py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md hover:shadow-lg transition-all"
-        >
-          <ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />
-          <span className="hidden sm:inline">View Cart</span>
-          {selectedCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 md:static md:-top-auto md:-right-auto bg-white text-primary h-4 w-4 md:h-5 md:w-5 md:px-1.5 md:py-0.5 rounded-full md:rounded-md text-[10px] font-bold flex items-center justify-center">
-              {selectedCount}
-            </span>
-          )}
-        </button>
       </div>
 
       <div className="flex flex-col lg:flex-row items-start gap-4 w-full flex-1 min-h-0">
         <div className="flex-1 w-full flex flex-col min-h-0 gap-3">
-          
-          {/* Filter Bar */}
-          <div className="glass-card rounded-xl p-2.5 md:p-3 flex flex-col md:flex-row flex-wrap items-stretch md:items-center gap-2.5 shrink-0">
-            <div className="flex-1 min-w-[150px]">
-              <div className="relative">
-                <Globe className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                <Input className="w-full pl-8 h-8 text-xs bg-background/50 rounded-lg" placeholder="Country or area code (e.g. US, 212)" />
-              </div>
-            </div>
-            <div className="w-full md:w-auto">
-              <select className="flex h-8 w-full md:w-auto min-w-[120px] rounded-lg border border-input bg-background/50 px-2.5 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary">
-                <option>All Types</option>
-                <option>Local</option>
-                <option>Toll-Free</option>
-                <option>Mobile</option>
-              </select>
-            </div>
-            <div className="flex gap-1.5">
-              <button className="px-2.5 py-1.5 border border-primary bg-primary/10 text-primary rounded-lg text-[10px] font-semibold transition-all">Voice</button>
-              <button className="px-2.5 py-1.5 border border-border bg-background/50 hover:border-primary transition-all rounded-lg text-[10px] font-medium">SMS</button>
-              <button className="px-2.5 py-1.5 border border-border bg-background/50 hover:border-primary transition-all rounded-lg text-[10px] font-medium">MMS</button>
-            </div>
-          </div>
-
           {/* Inventory List (Compact & Scalable) */}
-          <div className="flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-1 pb-24 lg:pb-0">
+          <div className="flex flex-col gap-2 pb-24 lg:pb-0">
             {mockInventory.map((item) => {
               const isSelected = selectedNumbers.has(item.id);
               return (

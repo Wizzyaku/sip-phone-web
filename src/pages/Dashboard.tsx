@@ -76,36 +76,11 @@ export function Dashboard() {
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 pb-24 md:p-6 md:pb-6 bg-background/40 w-full relative">
+    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 pb-2.5 md:p-6 md:pb-6 w-full relative">
 
-      {/* Quick Actions */}
+      {/* Premium Token Balance Card */}
       <div className="mb-3 md:mb-8">
-        <h4 className="font-bold text-xs md:text-base text-muted-foreground mb-1.5 md:mb-4 uppercase md:normal-case tracking-wide md:tracking-normal">Quick Actions</h4>
-        <div className="grid grid-cols-3 md:grid-cols-4 gap-2 md:gap-6">
-          {[
-            { icon: PlusSquare, label: 'Buy Num', path: '/numbers/buy', color: 'text-blue-500', bg: 'bg-blue-500/10 border-blue-500/20' },
-            { icon: Wallet, label: 'Recharge', path: '/billing', color: 'text-emerald-500', bg: 'bg-emerald-500/10 border-emerald-500/20' },
-            { icon: Grid3X3, label: 'Dialer', path: '/calls', color: 'text-primary', bg: 'bg-primary/10 border-primary/20' },
-            { icon: Settings2, label: 'Apps', path: '/settings', mobile: false, color: 'text-orange-500', bg: 'bg-orange-500/10 border-orange-500/20' },
-          ].map((action, i) => (
-            <button key={i} onClick={() => navigate(action.path)} className={cn("glass-card bg-background/60 p-2 md:p-5 rounded-[1rem] md:rounded-[1.5rem] flex flex-col items-center gap-1.5 md:gap-4 hover:bg-background shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 active:scale-95 group relative overflow-hidden", action.mobile === false && "hidden md:flex")}>
-              {/* Subtle hover gradient */}
-              <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent dark:from-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
-              <div className={cn("w-9 h-9 md:w-14 md:h-14 rounded-[0.8rem] md:rounded-2xl flex items-center justify-center border shadow-sm group-hover:scale-110 transition-transform duration-500", action.bg, action.color)}>
-                <action.icon className="w-4 h-4 md:w-6 md:h-6 drop-shadow-sm" />
-              </div>
-              
-              <span className="text-[10px] md:text-sm text-foreground font-bold tracking-tight whitespace-nowrap z-10">{action.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Metrics Row */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-1.5 md:gap-6 mb-3 md:mb-8">
-        {/* Premium Token Balance Card */}
-        <div className="col-span-2 md:col-span-1 rounded-[1rem] md:rounded-[1.5rem] p-3 md:p-5 flex flex-col justify-between min-h-[96px] md:h-[160px] relative overflow-hidden bg-gradient-to-br from-indigo-950 via-primary to-primary/90 text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all group border border-primary/20">
+        <div className="rounded-[1rem] md:rounded-[1.5rem] p-3 md:p-5 flex flex-col justify-between min-h-[96px] md:h-[160px] relative overflow-hidden bg-gradient-to-br from-indigo-950 via-primary to-primary/90 text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all group border border-primary/20">
           {/* Decorative glowing orb */}
           <div className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-white/10 rounded-full blur-[20px] md:blur-[40px] -mr-8 -mt-8 pointer-events-none" />
           
@@ -147,9 +122,36 @@ export function Dashboard() {
             </svg>
           </div>
         </div>
+      </div>
 
+      {/* Quick Actions */}
+      <div className="mb-3 md:mb-8">
+        <h4 className="font-bold text-xs md:text-base text-muted-foreground mb-1.5 md:mb-4 uppercase md:normal-case tracking-wide md:tracking-normal">Quick Actions</h4>
+        <div className="grid grid-cols-3 md:grid-cols-4 gap-2 md:gap-6">
+          {[
+            { icon: PlusSquare, label: 'Buy Num', path: '/numbers/buy', color: 'text-blue-500', bg: 'bg-blue-500/10 border-blue-500/20' },
+            { icon: Wallet, label: 'Recharge', path: '/billing', color: 'text-emerald-500', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+            { icon: Grid3X3, label: 'Dialer', path: '/calls', color: 'text-primary', bg: 'bg-primary/10 border-primary/20' },
+            { icon: Settings2, label: 'Apps', path: '/settings', mobile: false, color: 'text-orange-500', bg: 'bg-orange-500/10 border-orange-500/20' },
+          ].map((action, i) => (
+            <button key={i} onClick={() => navigate(action.path)} className={cn("glass-card p-2 md:p-5 rounded-[1rem] md:rounded-[1.5rem] flex flex-col items-center gap-1.5 md:gap-4 hover:bg-background shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 active:scale-95 group relative overflow-hidden", action.mobile === false && "hidden md:flex")}>
+              {/* Subtle hover gradient */}
+              <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent dark:from-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              <div className={cn("w-9 h-9 md:w-14 md:h-14 rounded-[0.8rem] md:rounded-2xl flex items-center justify-center border shadow-sm group-hover:scale-110 transition-transform duration-500", action.bg, action.color)}>
+                <action.icon className="w-4 h-4 md:w-6 md:h-6 drop-shadow-sm" />
+              </div>
+              
+              <span className="text-[10px] md:text-sm text-foreground font-bold tracking-tight whitespace-nowrap z-10">{action.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Metrics Row */}
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-1.5 md:gap-6 mb-3 md:mb-8">
         {/* Premium Monthly Usage Card */}
-        <div className="col-span-1 glass-card rounded-[1rem] md:rounded-[1.5rem] p-3 md:p-5 flex flex-col justify-between min-h-[96px] md:h-[160px] bg-background/80 border border-border/50 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+        <div className="col-span-1 glass-card rounded-[1rem] md:rounded-[1.5rem] p-3 md:p-5 flex flex-col justify-between min-h-[96px] md:h-[160px] border border-border/50 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
           {/* Subtle gradient accent */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-[30px] -mr-10 -mt-10 pointer-events-none transition-transform duration-700 group-hover:scale-110" />
 
@@ -198,7 +200,7 @@ export function Dashboard() {
         </div>
 
         {/* Premium Active Numbers Card */}
-        <div className="col-span-1 glass-card rounded-[1rem] md:rounded-[1.5rem] p-3 md:p-5 flex flex-col justify-between min-h-[96px] md:h-[160px] bg-background/80 border border-border/50 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+        <div className="col-span-1 glass-card rounded-[1rem] md:rounded-[1.5rem] p-3 md:p-5 flex flex-col justify-between min-h-[96px] md:h-[160px] border border-border/50 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
           {/* Subtle gradient accent */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-[30px] -mr-10 -mt-10 pointer-events-none transition-transform duration-700 group-hover:scale-110" />
 
@@ -239,7 +241,7 @@ export function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-6">
         
         {/* Premium Consumption Analytics Card */}
-        <div className="lg:col-span-2 glass-card rounded-[1rem] md:rounded-[1.5rem] p-3 md:p-6 flex flex-col h-[220px] md:h-[450px] bg-background/80 border border-border/50 shadow-sm relative overflow-hidden group">
+        <div className="lg:col-span-2 glass-card rounded-[1rem] md:rounded-[1.5rem] p-3 md:p-6 flex flex-col h-[220px] md:h-[450px] border border-border/50 shadow-sm relative overflow-hidden group">
           <div className="flex justify-between items-start md:items-center mb-2 md:mb-6 z-10">
             <div>
               <div className="flex items-center gap-1.5 md:gap-2 mb-0 md:mb-1">

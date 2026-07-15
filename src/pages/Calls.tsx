@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo, memo } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Phone,
   Loader2,
@@ -97,6 +98,16 @@ export function Calls() {
   const [showSettings, setShowSettings] = useState(false);
   const [lowBalanceOpen, setLowBalanceOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<'recents' | 'keypad'>('recents');
+  const location = useLocation();
+  const state = location.state as { dialNumber?: string } | null;
+
+  useEffect(() => {
+    if (state?.dialNumber) {
+      setNumber(state.dialNumber);
+      setMobileTab('keypad'); // Auto-switch to keypad on mobile when dialing from contacts
+    }
+  }, [state?.dialNumber]);
+
   const [callHistory, setCallHistory] = useState<CallRecord[]>([
     { id: '1', name: 'Sarah Jenkins', phone: '+1 (555) 098-7654', time: '10:24 AM', duration: '12m 45s', type: 'incoming', recorded: true, date: new Date(Date.now() - 1000 * 60 * 60 * 2) },
     { id: '2', name: 'Support Ticket #882', phone: '+1 (800) 912-0033', time: '09:15 AM', duration: '03m 12s', type: 'outgoing', recorded: false, date: new Date(Date.now() - 1000 * 60 * 60 * 4) },

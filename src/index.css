@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 215 25% 89%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -12,11 +12,11 @@
     --popover-foreground: 222.2 84% 4.9%;
     --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
+    --secondary: 215 20% 88%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
+    --muted: 215 20% 86%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
+    --accent: 215 20% 88%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -74,13 +74,13 @@
   }
 
   .dashboard-gradient {
-    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(215 25% 86%) 100%);
   }
 
   .glass-card {
-    background: rgba(248, 250, 252, 0.85); /* slate-50 */
+    background: #ffffff;
     backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(226, 232, 240, 0.8);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     transition: border-color 0.2s ease, transform 0.2s ease;
   }

@@ -132,7 +132,7 @@ export function Settings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 pb-24 md:pb-6">
       {/* Header */}
       <div className="hidden md:block">
         <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
@@ -140,8 +140,8 @@ export function Settings() {
       </div>
 
       {/* Tabs */}
-      <div className="overflow-x-auto">
-        <div className="flex min-w-max gap-6 border-b border-border/50">
+      <div className="overflow-x-auto custom-scrollbar -mx-2 md:mx-0 px-2 md:px-0">
+        <div className="flex min-w-max gap-4 md:gap-6 border-b border-border/50">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -150,11 +150,11 @@ export function Settings() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={cn(
-                  'flex items-center gap-2 border-b-2 px-2 pb-4 text-sm font-medium transition-all',
+                  'flex items-center gap-1.5 md:gap-2 border-b-2 px-1 md:px-2 pb-3 md:pb-4 text-xs md:text-sm font-medium transition-all',
                   active ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 {tab.label}
               </button>
             );
@@ -165,64 +165,64 @@ export function Settings() {
       {/* Profile Tab */}
       {activeTab === 'profile' && (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Card className="glass-card md:col-span-2">
-            <CardContent className="p-5">
-              <div className="mb-6 flex items-start justify-between">
+          <Card className="glass-card md:col-span-2 rounded-xl md:rounded-2xl border-border/50">
+            <CardContent className="p-4 md:p-5">
+              <div className="mb-4 md:mb-6 flex items-start justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold">Personal Details</h3>
-                  <p className="text-sm text-muted-foreground">Update your name, bio and company role.</p>
+                  <h3 className="text-base md:text-lg font-semibold">Personal Details</h3>
+                  <p className="text-xs md:text-sm text-muted-foreground">Update your name, bio and company role.</p>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => setEditingProfile((v) => !v)}>
-                  <Pencil className="h-4 w-4" />
+                <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => setEditingProfile((v) => !v)}>
+                  <Pencil className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 </Button>
               </div>
               <div className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Full Name</label>
+                <div className="grid gap-3 md:gap-4 sm:grid-cols-2">
+                  <div className="space-y-1 md:space-y-1.5">
+                    <label className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">Full Name</label>
                     {editingProfile ? (
                       <Input
                         value={draft.name}
                         onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                        className="rounded-xl"
+                        className="rounded-lg md:rounded-xl text-xs md:text-sm h-10 md:h-12 bg-background"
                       />
                     ) : (
-                      <div className="rounded-xl border bg-muted p-3 text-sm">{user.name}</div>
+                      <div className="rounded-lg md:rounded-xl border border-border/50 bg-muted/50 p-2.5 md:p-3 text-xs md:text-sm">{user.name}</div>
                     )}
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email Address</label>
+                  <div className="space-y-1 md:space-y-1.5">
+                    <label className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">Email Address</label>
                     {editingProfile ? (
                       <Input
                         value={draft.email}
                         onChange={(e) => setDraft({ ...draft, email: e.target.value })}
-                        className="rounded-xl"
+                        className="rounded-lg md:rounded-xl text-xs md:text-sm h-10 md:h-12 bg-background"
                       />
                     ) : (
-                      <div className="rounded-xl border bg-muted p-3 text-sm">{user.email}</div>
+                      <div className="rounded-lg md:rounded-xl border border-border/50 bg-muted/50 p-2.5 md:p-3 text-xs md:text-sm">{user.email}</div>
                     )}
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Account Number</label>
-                  <div className="flex items-center justify-between rounded-xl border bg-muted p-3">
-                    <span className="font-mono text-sm font-bold text-primary">{accountNumber}</span>
-                    <button onClick={handleCopyAccount} className="text-muted-foreground hover:text-primary">
-                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                <div className="space-y-1 md:space-y-1.5">
+                  <label className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">Account Number</label>
+                  <div className="flex items-center justify-between rounded-lg md:rounded-xl border border-border/50 bg-muted/50 p-2.5 md:p-3">
+                    <span className="font-mono text-xs md:text-sm font-bold text-primary">{accountNumber}</span>
+                    <button onClick={handleCopyAccount} className="text-muted-foreground hover:text-primary transition-colors">
+                      {copied ? <Check className="h-3.5 w-3.5 md:h-4 md:w-4 text-green-500" /> : <Copy className="h-3.5 w-3.5 md:h-4 md:w-4" />}
                     </button>
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Professional Bio</label>
+                <div className="space-y-1 md:space-y-1.5">
+                  <label className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">Professional Bio</label>
                   {editingProfile ? (
                     <Input
                       value={draft.bio}
                       onChange={(e) => setDraft({ ...draft, bio: e.target.value })}
                       placeholder="Tell us about your role"
-                      className="rounded-xl"
+                      className="rounded-lg md:rounded-xl text-xs md:text-sm h-10 md:h-12 bg-background"
                     />
                   ) : (
-                    <div className="rounded-xl border bg-muted p-3 text-sm italic text-muted-foreground">
+                    <div className="rounded-lg md:rounded-xl border border-border/50 bg-muted/50 p-2.5 md:p-3 text-xs md:text-sm italic text-muted-foreground">
                       {user.bio || 'Senior Account Executive managing enterprise communications.'}
                     </div>
                   )}
@@ -232,20 +232,20 @@ export function Settings() {
           </Card>
 
           <div className="flex flex-col gap-4">
-            <Card className="glass-card">
-              <CardContent className="flex flex-col items-center p-5 text-center">
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <ShieldCheck className="h-8 w-8" />
+            <Card className="glass-card rounded-xl md:rounded-2xl border-border/50">
+              <CardContent className="flex flex-col items-center p-4 md:p-5 text-center">
+                <div className="mb-3 md:mb-4 flex h-12 w-12 md:h-16 md:w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <ShieldCheck className="h-6 w-6 md:h-8 md:w-8" />
                 </div>
-                <h4 className="text-lg font-semibold text-primary">Active</h4>
-                <p className="mb-4 text-xs text-muted-foreground">Two-Factor Authentication is currently securing your account.</p>
-                <Button variant="outline" className="w-full">Configure 2FA</Button>
+                <h4 className="text-base md:text-lg font-semibold text-primary">Active</h4>
+                <p className="mb-4 text-[10px] md:text-xs text-muted-foreground">Two-Factor Authentication is currently securing your account.</p>
+                <Button variant="outline" className="w-full text-xs md:text-sm h-9 md:h-10">Configure 2FA</Button>
               </CardContent>
             </Card>
 
-            <Card className="glass-card">
-              <CardContent className="p-5">
-                <h4 className="mb-4 text-sm font-semibold">Appearance</h4>
+            <Card className="glass-card rounded-xl md:rounded-2xl border-border/50">
+              <CardContent className="p-4 md:p-5">
+                <h4 className="mb-3 md:mb-4 text-sm font-semibold">Appearance</h4>
                 <div className="space-y-2">
                   {themes.map((t) => {
                     const Icon = t.icon;
@@ -254,20 +254,20 @@ export function Settings() {
                       <label
                         key={t.id}
                         className={cn(
-                          'flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-all',
-                          active ? 'border-primary bg-primary/5' : 'border-border bg-muted hover:border-primary/50'
+                          'flex cursor-pointer items-center justify-between rounded-lg md:rounded-xl border p-2.5 md:p-3 transition-all',
+                          active ? 'border-primary bg-primary/5' : 'border-border/50 bg-muted/30 hover:border-primary/50'
                         )}
                       >
                         <div className="flex items-center gap-2">
-                          <Icon className="h-4 w-4" />
-                          <span className="text-sm">{t.label}</span>
+                          <Icon className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                          <span className="text-xs md:text-sm font-medium">{t.label}</span>
                         </div>
                         <input
                           type="radio"
                           name="theme"
                           checked={active}
                           onChange={() => setTheme(t.id as typeof theme)}
-                          className="h-4 w-4 text-primary focus:ring-primary/20"
+                          className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary focus:ring-primary/20"
                         />
                       </label>
                     );
@@ -281,44 +281,44 @@ export function Settings() {
 
       {/* Account Tab */}
       {activeTab === 'account' && (
-        <Card className="glass-card">
-          <CardContent className="p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <Phone className="h-5 w-5" />
-              <h3 className="text-lg font-semibold">Telnyx Sender Number</h3>
+        <Card className="glass-card rounded-xl md:rounded-2xl border-border/50">
+          <CardContent className="p-4 md:p-5">
+            <div className="mb-3 md:mb-4 flex items-center gap-2">
+              <Phone className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+              <h3 className="text-base md:text-lg font-semibold">Telnyx Sender Number</h3>
             </div>
-            <p className="mb-4 text-sm text-muted-foreground">Verify and set the phone number used to send SMS from the web.</p>
-            <div className="flex items-center gap-2">
+            <p className="mb-3 md:mb-4 text-xs md:text-sm text-muted-foreground">Verify and set the phone number used to send SMS from the web.</p>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <Input
                 type="tel"
                 value={numberDraft}
                 onChange={(e) => setNumberDraft(e.target.value)}
                 placeholder="+14237303370"
-                className="flex-1"
+                className="flex-1 h-10 md:h-11 rounded-lg md:rounded-xl bg-background"
               />
-              <Button onClick={handleVerifyNumber} disabled={verifying || !numberDraft.trim()}>
-                {verifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button onClick={handleVerifyNumber} disabled={verifying || !numberDraft.trim()} className="h-10 md:h-11 rounded-lg md:rounded-xl shrink-0 text-xs md:text-sm">
+                {verifying && <Loader2 className="mr-2 h-3.5 w-3.5 md:h-4 md:w-4 animate-spin" />}
                 Verify
               </Button>
             </div>
             {verifyStatus && (
               <div
                 className={cn(
-                  'mt-3 flex items-center gap-2 text-sm',
+                  'mt-3 flex items-center gap-1.5 md:gap-2 text-[10px] md:text-sm',
                   verifyStatus.type === 'success' ? 'text-emerald-600' : 'text-red-500'
                 )}
               >
-                {verifyStatus.type === 'success' ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                {verifyStatus.type === 'success' ? <CheckCircle className="h-3.5 w-3.5 md:h-4 md:w-4" /> : <AlertCircle className="h-3.5 w-3.5 md:h-4 md:w-4" />}
                 {verifyStatus.message}
               </div>
             )}
-            <div className="mt-4 flex items-center gap-2">
-              <Button onClick={handleSaveNumber} disabled={!numberDraft.trim()}>
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-2 md:gap-3">
+              <Button onClick={handleSaveNumber} disabled={!numberDraft.trim()} className="w-full sm:w-auto h-10 md:h-11 rounded-lg md:rounded-xl text-xs md:text-sm">
                 Save Number
               </Button>
               {telnyxNumber && (
-                <span className="text-sm text-muted-foreground">
-                  Current: <span className="font-medium text-foreground">{telnyxNumber}</span>
+                <span className="text-[10px] md:text-sm text-muted-foreground text-center sm:text-left">
+                  Current: <span className="font-bold text-foreground">{telnyxNumber}</span>
                 </span>
               )}
             </div>
@@ -328,11 +328,11 @@ export function Settings() {
 
       {/* Appearance Tab */}
       {activeTab === 'appearance' && (
-        <Card className="glass-card">
-          <CardContent className="p-5">
-            <h3 className="mb-4 text-lg font-semibold">Appearance</h3>
-            <p className="mb-4 text-sm text-muted-foreground">Choose how the dashboard looks.</p>
-            <div className="grid gap-3 sm:grid-cols-3">
+        <Card className="glass-card rounded-xl md:rounded-2xl border-border/50">
+          <CardContent className="p-4 md:p-5">
+            <h3 className="mb-2 md:mb-4 text-base md:text-lg font-semibold">Appearance</h3>
+            <p className="mb-4 text-xs md:text-sm text-muted-foreground">Choose how the dashboard looks.</p>
+            <div className="grid gap-2 md:gap-3 grid-cols-1 sm:grid-cols-3">
               {themes.map((t) => {
                 const Icon = t.icon;
                 const active = theme === t.id;
@@ -341,12 +341,15 @@ export function Settings() {
                     key={t.id}
                     onClick={() => setTheme(t.id as typeof theme)}
                     className={cn(
-                      'flex flex-col items-center gap-2 rounded-xl border p-4 transition-all',
-                      active ? 'border-primary bg-primary/5 text-primary' : 'hover:bg-muted'
+                      'flex flex-row sm:flex-col items-center justify-between sm:justify-center gap-2 rounded-lg md:rounded-xl border p-3 md:p-4 transition-all',
+                      active ? 'border-primary bg-primary/5 text-primary shadow-sm' : 'border-border/50 hover:bg-muted/50'
                     )}
                   >
-                    <Icon className="h-6 w-6" />
-                    <span className="text-sm font-medium">{t.label}</span>
+                    <div className="flex items-center gap-2 sm:flex-col sm:gap-2">
+                      <Icon className="h-4 w-4 md:h-6 md:w-6" />
+                      <span className="text-xs md:text-sm font-medium">{t.label}</span>
+                    </div>
+                    {active && <CheckCircle className="h-4 w-4 sm:hidden text-primary" />}
                   </button>
                 );
               })}
@@ -357,39 +360,41 @@ export function Settings() {
 
       {/* Notifications Tab */}
       {activeTab === 'notifications' && (
-        <Card className="glass-card">
-          <CardContent className="p-5">
-            <h3 className="mb-1 text-lg font-semibold">Notifications</h3>
-            <p className="mb-4 text-sm text-muted-foreground">Manage notification history.</p>
-            <p className="text-sm text-muted-foreground">
-              You have {notifications.length} stored notification{notifications.length === 1 ? '' : 's'}.
+        <Card className="glass-card rounded-xl md:rounded-2xl border-border/50">
+          <CardContent className="p-4 md:p-5">
+            <h3 className="mb-1 text-base md:text-lg font-semibold">Notifications</h3>
+            <p className="mb-4 text-xs md:text-sm text-muted-foreground">Manage notification history.</p>
+            <p className="text-[10px] md:text-sm text-muted-foreground font-medium p-3 bg-muted/50 rounded-lg inline-block border border-border/50">
+              You have <span className="font-bold text-foreground">{notifications.length}</span> stored notification{notifications.length === 1 ? '' : 's'}.
             </p>
-            <Button variant="outline" className="mt-4" onClick={clearNotifications}>
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Clear All Notifications
-            </Button>
+            <div className="mt-4">
+              <Button variant="outline" className="w-full sm:w-auto rounded-lg md:rounded-xl text-xs md:text-sm h-10 md:h-11" onClick={clearNotifications}>
+                <RotateCcw className="mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />
+                Clear All Notifications
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
 
       {/* Security Tab */}
       {activeTab === 'security' && (
-        <Card className="glass-card overflow-hidden">
-          <div className="flex items-center justify-between border-b border-border/30 p-5">
-            <h3 className="text-lg font-semibold">Security &amp; Access</h3>
-            <span className="rounded bg-primary/10 px-2 py-1 text-xs font-bold uppercase tracking-widest text-primary">
+        <Card className="glass-card overflow-hidden rounded-xl md:rounded-2xl border-border/50">
+          <div className="flex items-center justify-between border-b border-border/30 p-4 md:p-5">
+            <h3 className="text-base md:text-lg font-semibold">Security &amp; Access</h3>
+            <span className="rounded bg-primary/10 px-2 py-1 text-[9px] md:text-xs font-bold uppercase tracking-widest text-primary hidden md:inline-block">
               Real-time monitoring
             </span>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left">
-              <thead className="bg-muted text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <thead className="bg-muted text-[10px] md:text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="px-5 py-4">Device</th>
-                  <th className="px-5 py-4">Location</th>
-                  <th className="px-5 py-4">IP Address</th>
-                  <th className="px-5 py-4">Last Activity</th>
-                  <th className="px-5 py-4">Action</th>
+                  <th className="px-3 md:px-5 py-2.5 md:py-4 whitespace-nowrap">Device</th>
+                  <th className="px-3 md:px-5 py-2.5 md:py-4 whitespace-nowrap hidden sm:table-cell">Location</th>
+                  <th className="px-3 md:px-5 py-2.5 md:py-4 whitespace-nowrap hidden sm:table-cell">IP Address</th>
+                  <th className="px-3 md:px-5 py-2.5 md:py-4 whitespace-nowrap">Last Activity</th>
+                  <th className="px-3 md:px-5 py-2.5 md:py-4 whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/20">
@@ -397,26 +402,30 @@ export function Settings() {
                   const Icon = session.icon;
                   return (
                     <tr key={session.id} className="transition-colors hover:bg-muted/50">
-                      <td className="px-5 py-4">
+                      <td className="px-3 md:px-5 py-3 md:py-4">
                         <div className="flex items-center gap-2">
-                          <Icon className={cn('h-4 w-4', session.current ? 'text-primary' : 'text-muted-foreground')} />
-                          <span className="text-sm font-medium">{session.device}</span>
+                          <Icon className={cn('h-3.5 w-3.5 md:h-4 md:w-4 shrink-0', session.current ? 'text-primary' : 'text-muted-foreground')} />
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[11px] md:text-sm font-medium truncate">{session.device}</span>
+                            <span className="sm:hidden text-[9px] text-muted-foreground truncate">{session.location}</span>
+                          </div>
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-sm">{session.location}</td>
-                      <td className="px-5 py-4 font-mono text-sm">{session.ip}</td>
-                      <td className="px-5 py-4">
+                      <td className="px-3 md:px-5 py-3 md:py-4 text-[11px] md:text-sm whitespace-nowrap hidden sm:table-cell">{session.location}</td>
+                      <td className="px-3 md:px-5 py-3 md:py-4 font-mono text-[11px] md:text-sm whitespace-nowrap hidden sm:table-cell">{session.ip}</td>
+                      <td className="px-3 md:px-5 py-3 md:py-4 whitespace-nowrap">
                         {session.current ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-700">
-                            <span className="h-2 w-2 rounded-full bg-amber-600" />
-                            Current Session
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 md:px-2 py-0.5 md:py-1 text-[9px] md:text-xs font-bold text-amber-700">
+                            <span className="h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-amber-600" />
+                            <span className="hidden md:inline">Current Session</span>
+                            <span className="md:hidden">Current</span>
                           </span>
                         ) : (
-                          <span className="text-sm text-muted-foreground">2 hours ago</span>
+                          <span className="text-[10px] md:text-sm text-muted-foreground">2 hrs ago</span>
                         )}
                       </td>
-                      <td className="px-5 py-4">
-                        <button className="text-sm font-medium text-destructive hover:underline">Revoke</button>
+                      <td className="px-3 md:px-5 py-3 md:py-4">
+                        <button className="text-[10px] md:text-sm font-medium text-destructive hover:underline">Revoke</button>
                       </td>
                     </tr>
                   );
@@ -424,9 +433,9 @@ export function Settings() {
               </tbody>
             </table>
           </div>
-          <div className="border-t border-border/30 p-5">
-            <Button variant="destructive" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
+          <div className="border-t border-border/30 p-4 md:p-5">
+            <Button variant="destructive" className="w-full sm:w-auto h-10 md:h-11 rounded-lg md:rounded-xl text-xs md:text-sm" onClick={handleLogout}>
+              <LogOut className="mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />
               Log Out
             </Button>
           </div>
@@ -435,25 +444,25 @@ export function Settings() {
 
       {/* Action Bar */}
       {activeTab === 'profile' && (
-        <div className="flex items-center justify-end gap-3 rounded-xl bg-muted p-4">
-          <Button variant="ghost" onClick={() => { setEditingProfile(false); setDraft({ ...draft, name: user.name, email: user.email, bio: user.bio ?? '' }); }}>
+        <div className="flex flex-col sm:flex-row items-center justify-end gap-2 md:gap-3 rounded-xl md:rounded-2xl bg-muted/50 p-3 md:p-4 border border-border/50">
+          <Button variant="ghost" className="w-full sm:w-auto text-xs md:text-sm h-10 md:h-11 rounded-lg md:rounded-xl" onClick={() => { setEditingProfile(false); setDraft({ ...draft, name: user.name, email: user.email, bio: user.bio ?? '' }); }}>
             Discard Changes
           </Button>
-          <Button onClick={handleSave} disabled={saved}>
-            {saved && <Check className="mr-2 h-4 w-4" />}
+          <Button className="w-full sm:w-auto text-xs md:text-sm h-10 md:h-11 rounded-lg md:rounded-xl" onClick={handleSave} disabled={saved}>
+            {saved && <Check className="mr-1.5 md:mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />}
             {saved ? 'Saved' : 'Save Settings'}
           </Button>
         </div>
       )}
 
       {saved && (
-        <div className="fixed bottom-20 right-10 z-50 flex items-center gap-3 rounded-xl bg-foreground p-4 text-background shadow-2xl md:bottom-10">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
-            <CheckCircle className="h-4 w-4 text-white" />
+        <div className="fixed bottom-24 right-4 md:bottom-10 md:right-10 z-50 flex items-center gap-2 md:gap-3 rounded-xl bg-foreground p-3 md:p-4 text-background shadow-2xl animate-in slide-in-from-bottom-5">
+          <div className="flex h-6 w-6 md:h-8 md:w-8 items-center justify-center rounded-full bg-green-500 shrink-0">
+            <CheckCircle className="h-3.5 w-3.5 md:h-4 md:w-4 text-white" />
           </div>
           <div>
-            <p className="text-sm font-bold">Settings Saved</p>
-            <p className="text-xs opacity-80">Your profile changes have been synchronized.</p>
+            <p className="text-xs md:text-sm font-bold">Settings Saved</p>
+            <p className="text-[10px] md:text-xs opacity-80 leading-tight">Your profile changes have been synchronized.</p>
           </div>
         </div>
       )}

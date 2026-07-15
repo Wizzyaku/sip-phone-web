@@ -223,10 +223,10 @@ export function PhoneNumbers() {
             <Activity className="h-3.5 w-3.5 md:h-4 md:w-4" />
             <span className="hidden sm:inline">Status:</span> Online
           </Button>
-          <Button className="gap-1.5 rounded-lg px-2.5 py-1.5 md:gap-2 md:rounded-xl md:px-4 md:py-2 md:hidden">
+          <Button className="gap-1.5 rounded-lg px-2.5 py-1.5 md:gap-2 md:rounded-xl md:px-4 md:py-2 md:hidden" onClick={() => navigate('/numbers/buy')}>
             <Plus className="h-3.5 w-3.5 md:h-4 md:w-4" />
           </Button>
-          <Button className="hidden gap-2 rounded-xl md:flex">
+          <Button className="hidden gap-2 rounded-xl md:flex" onClick={() => navigate('/numbers/buy')}>
             <Plus className="h-4 w-4" />
             Add
           </Button>
@@ -255,7 +255,7 @@ export function PhoneNumbers() {
       </div>
 
       {/* Usage Insight Banner */}
-      <div className="relative flex flex-col items-center gap-2.5 overflow-hidden rounded-2xl glass-card p-2.5 md:flex-row md:gap-6 md:rounded-[2.5rem] md:p-6">
+      <div className="relative hidden flex-col items-center gap-2.5 overflow-hidden rounded-2xl glass-card p-2.5 md:flex md:flex-row md:gap-6 md:rounded-[2.5rem] md:p-6">
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-secondary/10 blur-3xl" />
         <div className="relative z-10 flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-xl md:h-24 md:w-24 md:rounded-3xl">
           <Lightbulb className="h-7 w-7 md:h-10 md:w-10" />
