@@ -177,7 +177,7 @@ export function MobileMessages(props: MobileMessagesProps) {
               value={props.search}
               onChange={(e) => props.setSearch(e.target.value)}
               placeholder="Search messages"
-              className="h-10 w-full rounded-full border border-border/40 bg-muted/60 pl-9 pr-4 text-sm font-medium text-foreground outline-none transition-all focus:border-primary/40 focus:bg-background focus:ring-2 focus:ring-primary/10"
+              className="h-10 w-full rounded-full border border-border/40 bg-card pl-9 pr-4 text-sm font-medium text-foreground outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
             />
           </div>
         </div>

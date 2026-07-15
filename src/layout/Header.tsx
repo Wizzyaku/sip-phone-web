@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Search, Bell, Moon, Sun, Check, X, Wallet, PhoneCall } from 'lucide-react';
+import { Search, Bell, Moon, Sun, Check, X, Wallet, PhoneCall, ShoppingCart } from 'lucide-react';
 import { useAppStore, unreadCount } from '../store/appStore';
 import { formatTokens } from '../lib/balance';
 import { Button } from '../components/ui/button';
@@ -23,6 +23,8 @@ export function Header({ onMenuClick }: HeaderProps) {
   const balance = useAppStore((s) => s.balance);
   const balanceLoading = useAppStore((s) => s.balanceLoading);
   const unread = useAppStore(unreadCount);
+  const buyNumberCartCount = useAppStore((s) => s.buyNumberCartCount);
+  const setBuyNumberCartOpen = useAppStore((s) => s.setBuyNumberCartOpen);
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -59,8 +61,23 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <nav className="hidden items-center gap-6 sm:flex">
+      <div className="flex items-center gap-1.5">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative rounded-full hover:bg-muted lg:hidden"
+          aria-label="Cart"
+          onClick={() => setBuyNumberCartOpen(true)}
+        >
+          <ShoppingCart className="h-5 w-5 text-muted-foreground" />
+          {buyNumberCartCount > 0 && (
+            <span className="absolute right-1 top-1 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+              {buyNumberCartCount}
+            </span>
+          )}
+        </Button>
+
+        <nav className="hidden items-center gap-4 sm:flex">
           <NavLink
             to="/billing"
             className={({ isActive }) =>

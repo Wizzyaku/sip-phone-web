@@ -108,6 +108,10 @@ interface AppState {
   setBalance: (balance: Balance | null) => void;
   refreshBalance: () => Promise<void>;
   incrementBalance: (tokens: number) => void;
+  buyNumberCartOpen: boolean;
+  setBuyNumberCartOpen: (open: boolean) => void;
+  buyNumberCartCount: number;
+  setBuyNumberCartCount: (count: number) => void;
 }
 
 function resolveTheme(theme: 'light' | 'dark' | 'system'): 'light' | 'dark' {
@@ -280,6 +284,10 @@ export const useAppStore = create<AppState>()(
             : { tokens, updatedAt: new Date().toISOString() },
         }));
       },
+      buyNumberCartOpen: false,
+      setBuyNumberCartOpen: (open) => set({ buyNumberCartOpen: open }),
+      buyNumberCartCount: 0,
+      setBuyNumberCartCount: (count) => set({ buyNumberCartCount: count }),
     }),
     {
       name: 'app-storage',

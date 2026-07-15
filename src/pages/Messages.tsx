@@ -427,7 +427,7 @@ export function Messages() {
               placeholder="Search conversations..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-9 rounded-lg pl-8 text-xs md:h-10 md:rounded-xl md:pl-9"
+              className="h-9 rounded-lg pl-8 text-xs bg-card md:h-10 md:rounded-xl md:pl-9"
             />
           </div>
           <div className="flex gap-1.5 md:gap-2">

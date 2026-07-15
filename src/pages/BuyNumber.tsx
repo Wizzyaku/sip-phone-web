@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Globe,
@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { cn } from '../lib/utils';
+import { useAppStore } from '../store/appStore';
 
 const mockInventory = [
   { id: 'num_1', number: '+1 (212) 555-0198', location: 'United States', country: '🇺🇸', type: 'Local', capabilities: ['voice', 'sms'], price: 2.50, setupFee: 1.00 },
@@ -28,6 +29,16 @@ export default function BuyNumber() {
   const navigate = useNavigate();
   const [selectedNumbers, setSelectedNumbers] = useState<Set<string>>(new Set());
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const buyNumberCartOpen = useAppStore((s) => s.buyNumberCartOpen);
+  const setBuyNumberCartOpen = useAppStore((s) => s.setBuyNumberCartOpen);
+  const setBuyNumberCartCount = useAppStore((s) => s.setBuyNumberCartCount);
+
+  useEffect(() => {
+    if (buyNumberCartOpen) {
+      setIsCartOpen(true);
+      setBuyNumberCartOpen(false);
+    }
+  }, [buyNumberCartOpen, setBuyNumberCartOpen]);
 
   const toggleSelection = (id: string) => {
     setSelectedNumbers(prev => {
@@ -43,35 +54,39 @@ export default function BuyNumber() {
   const monthlyTotal = selectedItems.reduce((acc, curr) => acc + curr.price, 0);
   const setupTotal = selectedItems.reduce((acc, curr) => acc + curr.setupFee, 0);
 
+  useEffect(() => {
+    setBuyNumberCartCount(selectedCount);
+  }, [selectedCount, setBuyNumberCartCount]);
+
   return (
     <div className="flex-1 w-full p-2 md:p-4 pb-4 flex flex-col gap-3 md:gap-4 relative">
       {/* Sticky Header & Filter Section */}
       <div className="sticky top-0 z-30 flex flex-col gap-3 -mx-2 md:-mx-4 px-2 md:px-4 pt-2 md:pt-4 pb-2 bg-background/95 backdrop-blur-md shadow-sm border-b border-border/50">
         {/* Header */}
-        <div className="shrink-0 flex flex-row items-center md:items-end justify-between gap-3">
+        <div className="hidden md:flex shrink-0 flex-row items-end justify-between gap-3">
           <div>
             <button 
               onClick={() => navigate(-1)} 
-              className="mb-1.5 flex items-center gap-1 text-[10px] md:text-xs font-semibold text-primary hover:underline"
+              className="mb-1.5 flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
             >
-              <ChevronRight className="h-3 w-3 md:h-4 md:w-4 rotate-180" />
+              <ChevronRight className="h-4 w-4 rotate-180" />
               Back to Numbers
             </button>
-            <div className="hidden md:block">
+            <div>
               <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">Buy Virtual Numbers</h1>
-              <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5">Search our global inventory of voice and SMS capable numbers.</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Search our global inventory of voice and SMS capable numbers.</p>
             </div>
           </div>
           
           {/* Cart Button */}
           <button 
             onClick={() => setIsCartOpen(true)}
-            className="relative flex items-center justify-center gap-2 bg-primary text-primary-foreground px-3 py-2 md:px-4 md:py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md hover:shadow-lg transition-all"
+            className="relative flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all"
           >
-            <ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />
-            <span className="hidden sm:inline">View Cart</span>
+            <ShoppingCart className="h-5 w-5" />
+            <span>View Cart</span>
             {selectedCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 md:static md:-top-auto md:-right-auto bg-white text-primary h-4 w-4 md:h-5 md:w-5 md:px-1.5 md:py-0.5 rounded-full md:rounded-md text-[10px] font-bold flex items-center justify-center">
+              <span className="static bg-white text-primary h-5 w-5 px-1.5 py-0.5 rounded-md text-[10px] font-bold flex items-center justify-center">
                 {selectedCount}
               </span>
             )}

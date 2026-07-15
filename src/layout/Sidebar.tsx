@@ -69,16 +69,16 @@ export function Sidebar({ onNavigate }: SidebarProps) {
               to={item.path}
               onClick={onNavigate}
               className={cn(
-                'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium transition-colors',
                 isActive
                   ? 'active-nav-indicator bg-primary/5 text-primary'
                   : 'text-muted-foreground hover:bg-primary/10 hover:text-foreground'
               )}
             >
-              <Icon className="h-[18px] w-[18px]" />
+              <Icon className="h-5 w-5" />
               <span className="flex-1">{item.label}</span>
               {badgeCount > 0 && (
-                <Badge variant="secondary" className="h-5 min-w-[1.25rem] justify-center px-1.5 text-[10px]">
+                <Badge variant="secondary" className="h-5 min-w-[1.25rem] justify-center px-1.5 text-xs">
                   {badgeCount}
                 </Badge>
               )}
@@ -88,25 +88,25 @@ export function Sidebar({ onNavigate }: SidebarProps) {
       </nav>
 
       <div className="mt-auto flex flex-col gap-0.5 border-t border-white/20 pt-3">
-        <Button className="w-full rounded-lg shadow-lg shadow-primary/20 mb-2 h-9" onClick={() => navigate('/settings')}>
+        <Button className="w-full rounded-lg shadow-lg shadow-primary/20 mb-2 h-10 text-base" onClick={() => navigate('/settings')}>
           Buy Number
         </Button>
         <NavLink
           to="/settings"
           onClick={onNavigate}
           className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-primary/10',
+            'flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:bg-primary/10',
             location.pathname.startsWith('/settings') && 'text-primary bg-primary/5'
           )}
         >
-          <HelpCircle className="h-[18px] w-[18px]" />
+          <HelpCircle className="h-5 w-5" />
           Help
         </NavLink>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium text-destructive transition-colors hover:bg-destructive/10"
         >
-          <LogOut className="h-[18px] w-[18px]" />
+          <LogOut className="h-5 w-5" />
           Sign Out
         </button>
       </div>
