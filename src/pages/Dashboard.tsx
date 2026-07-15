@@ -76,7 +76,7 @@ export function Dashboard() {
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 pb-2.5 md:p-6 md:pb-6 w-full relative">
+    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 md:p-6 md:pb-6 w-full relative">
 
       {/* Premium Token Balance Card */}
       <div className="mb-3 md:mb-8">

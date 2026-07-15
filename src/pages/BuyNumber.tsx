@@ -105,7 +105,7 @@ export default function BuyNumber() {
       <div className="flex flex-col lg:flex-row items-start gap-4 w-full flex-1 min-h-0">
         <div className="flex-1 w-full flex flex-col min-h-0 gap-3">
           {/* Inventory List (Compact & Scalable) */}
-          <div className="flex flex-col gap-2 pb-2.5 lg:pb-0">
+          <div className="flex flex-col gap-2 lg:pb-0">
             {mockInventory.map((item) => {
               const isSelected = selectedNumbers.has(item.id);
               return (

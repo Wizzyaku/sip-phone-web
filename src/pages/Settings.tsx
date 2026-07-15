@@ -132,7 +132,7 @@ export function Settings() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 pb-2.5 md:pb-6">
+    <div className="space-y-4 md:space-y-6 md:pb-6">
       {/* Header */}
       <div className="hidden md:block">
         <h1 className="text-2xl font-bold tracking-tight">Settings</h1>

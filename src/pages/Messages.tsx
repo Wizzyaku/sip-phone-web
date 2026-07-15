@@ -445,7 +445,7 @@ export function Messages() {
             ))}
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto px-1.5 pb-1.5 md:px-2 md:pb-2">
+        <div className="flex-1 overflow-y-auto px-1.5 md:px-2 md:pb-2">
           {loading && filteredConversations.length === 0 && (
             <div className="space-y-2 p-1.5 md:space-y-3 md:p-2">
               <Skeleton className="h-14 w-full md:h-16" />
