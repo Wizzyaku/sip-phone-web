@@ -5,7 +5,6 @@ import {
   Wallet,
   Grid3X3,
   Settings2,
-  Coins,
   PlusCircle,
   RefreshCw,
   PieChart,
