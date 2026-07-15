@@ -12,7 +12,7 @@ export function MobileBottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 w-full h-[64px] md:hidden backdrop-blur-2xl z-50 rounded-t-2xl border-t border-border/20 bg-background/80 flex justify-around items-center px-2 shadow-[0_-15px_40px_rgba(91,91,214,0.1)]"
+      className="fixed bottom-0 w-full h-[64px] md:hidden backdrop-blur-2xl z-50 rounded-t-2xl border-t border-border/20 bg-card flex justify-around items-center px-2 shadow-[0_-15px_40px_rgba(91,91,214,0.1)]"
       style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}
     >
       <NavLink to="/" className={cn("flex flex-col items-center justify-center w-16 transition-colors", isHome ? "text-primary" : "text-muted-foreground hover:text-primary")}>

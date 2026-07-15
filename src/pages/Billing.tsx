@@ -128,7 +128,7 @@ export function Billing() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 pb-24 md:pb-6">
+    <div className="space-y-4 md:space-y-6 pb-2.5 md:pb-6">
       <div className="hidden md:block">
         <h1 className="text-2xl font-bold tracking-tight">Wallet & Top-up</h1>
         <p className="text-sm text-muted-foreground">Buy token credits to power calls and messages.</p>

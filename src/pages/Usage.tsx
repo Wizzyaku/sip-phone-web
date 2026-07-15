@@ -146,7 +146,7 @@ export function Usage() {
   }, []);
 
   return (
-    <div className="space-y-4 md:space-y-6 pb-24 md:pb-6">
+    <div className="space-y-4 md:space-y-6 pb-2.5 md:pb-6">
       {/* Header & Controls */}
       <div className="flex flex-col justify-between gap-3 md:gap-4 md:flex-row md:items-center">
         <div className="hidden md:block">

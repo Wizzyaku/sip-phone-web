@@ -190,7 +190,7 @@ export function Contacts() {
   const isEmpty = filtered.length === 0;
 
   return (
-    <div className="space-y-4 md:space-y-6 pb-24 md:pb-6">
+    <div className="space-y-4 md:space-y-6 pb-2.5 md:pb-6">
       {/* Header */}
       <div className="flex flex-row items-center justify-between gap-2 md:gap-4">
         <div>

@@ -79,15 +79,15 @@ export default function BuyNumber() {
         </div>
 
         {/* Filter Bar */}
-        <div className="glass-card rounded-xl p-2.5 md:p-3 flex flex-col md:flex-row flex-wrap items-stretch md:items-center gap-2.5 shrink-0 bg-background/80">
+        <div className="bg-card rounded-xl p-2.5 md:p-3 flex flex-col md:flex-row flex-wrap items-stretch md:items-center gap-2.5 shrink-0 border border-border/50 shadow-sm">
           <div className="flex-1 min-w-[150px]">
             <div className="relative">
               <Globe className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <Input className="w-full pl-8 h-8 text-xs bg-background/50 rounded-lg" placeholder="Country or area code (e.g. US, 212)" />
+              <Input className="w-full pl-8 h-8 text-xs bg-background rounded-lg" placeholder="Country or area code (e.g. US, 212)" />
             </div>
           </div>
           <div className="w-full md:w-auto">
-            <select className="flex h-8 w-full md:w-auto min-w-[120px] rounded-lg border border-input bg-background/50 px-2.5 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary">
+            <select className="flex h-8 w-full md:w-auto min-w-[120px] rounded-lg border border-input bg-background px-2.5 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary">
               <option>All Types</option>
               <option>Local</option>
               <option>Toll-Free</option>
@@ -96,8 +96,8 @@ export default function BuyNumber() {
           </div>
           <div className="flex gap-1.5">
             <button className="px-2.5 py-1.5 border border-primary bg-primary/10 text-primary rounded-lg text-[10px] font-semibold transition-all">Voice</button>
-            <button className="px-2.5 py-1.5 border border-border bg-background/50 hover:border-primary transition-all rounded-lg text-[10px] font-medium">SMS</button>
-            <button className="px-2.5 py-1.5 border border-border bg-background/50 hover:border-primary transition-all rounded-lg text-[10px] font-medium">MMS</button>
+            <button className="px-2.5 py-1.5 border border-border bg-background hover:border-primary transition-all rounded-lg text-[10px] font-medium">SMS</button>
+            <button className="px-2.5 py-1.5 border border-border bg-background hover:border-primary transition-all rounded-lg text-[10px] font-medium">MMS</button>
           </div>
         </div>
       </div>
@@ -105,7 +105,7 @@ export default function BuyNumber() {
       <div className="flex flex-col lg:flex-row items-start gap-4 w-full flex-1 min-h-0">
         <div className="flex-1 w-full flex flex-col min-h-0 gap-3">
           {/* Inventory List (Compact & Scalable) */}
-          <div className="flex flex-col gap-2 pb-24 lg:pb-0">
+          <div className="flex flex-col gap-2 pb-2.5 lg:pb-0">
             {mockInventory.map((item) => {
               const isSelected = selectedNumbers.has(item.id);
               return (
