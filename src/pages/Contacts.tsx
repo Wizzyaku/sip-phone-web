@@ -194,7 +194,7 @@ export function Contacts() {
       {/* Header */}
       <div className="flex flex-row items-center justify-between gap-2 md:gap-4">
         <div>
-          <h2 className="text-lg md:text-3xl font-bold tracking-tight text-foreground">Contacts</h2>
+          <h2 className="hidden md:block text-3xl font-bold tracking-tight text-foreground">Contacts</h2>
           <p className="hidden md:block text-sm text-muted-foreground">Manage your organization's relationships and communication history.</p>
         </div>
         <div className="flex items-center gap-2">
@@ -202,8 +202,8 @@ export function Contacts() {
             <Upload className="mr-2 h-4 w-4" />
             Bulk Import
           </Button>
-          <Button size="sm" className="rounded-lg md:rounded-xl px-2.5 py-1.5 md:px-4 md:py-2 text-[10px] md:text-sm" onClick={() => setAddModalOpen(true)}>
-            <UserPlus className="md:mr-2 h-3.5 w-3.5 md:h-4 md:w-4 mr-1" />
+          <Button size="sm" className="hidden md:flex rounded-xl px-4 py-2 text-sm" onClick={() => setAddModalOpen(true)}>
+            <UserPlus className="mr-2 h-4 w-4" />
             Add Contact
           </Button>
         </div>
@@ -226,6 +226,10 @@ export function Contacts() {
         
         <div className="flex items-center justify-between w-full sm:w-auto">
           <span className="text-[10px] md:text-sm text-muted-foreground">{filtered.length} contacts</span>
+          <Button size="sm" className="md:hidden rounded-lg px-2.5 py-1.5 text-[10px]" onClick={() => setAddModalOpen(true)}>
+            <UserPlus className="h-3.5 w-3.5 mr-1" />
+            Add Contact
+          </Button>
           <div className="hidden md:flex gap-1 rounded-lg bg-muted p-1 ml-4">
             <button
               onClick={() => setViewMode('list')}

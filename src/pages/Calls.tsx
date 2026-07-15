@@ -215,23 +215,24 @@ export function Calls() {
     { id: 'recorded', label: 'Recorded' },
   ];
 
-  function MobileCalls() {
-    const formattedDial = useMemo(() => {
-      const hasPlus = number.startsWith('+');
-      const digits = number.replace(/\D/g, '');
-      if (hasPlus) {
-        return '+' + digits;
-      }
-      if (digits.length > 6) {
-        return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
-      }
-      if (digits.length > 3) {
-        return `${digits.slice(0, 3)}-${digits.slice(3, 6)}`;
-      }
-      return digits;
-    }, [number]);
+  const formattedDial = useMemo(() => {
+    const hasPlus = number.startsWith('+');
+    const digits = number.replace(/\D/g, '');
+    if (hasPlus) {
+      return '+' + digits;
+    }
+    if (digits.length > 6) {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+    }
+    if (digits.length > 3) {
+      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}`;
+    }
+    return digits;
+  }, [number]);
 
-    return (
+  return (
+    <>
+      {!isDesktop && (
       <div className="flex h-full flex-col gap-0 bg-background" style={{ isolation: 'isolate' }}>
         {/* Recents / Keypad View Toggle */}
         <div className="px-4 py-2 shrink-0 bg-background border-b border-border/10">
@@ -370,10 +371,25 @@ export function Calls() {
               {/* Screen Display */}
               <div className="w-full text-center">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-1">Manual Entry</p>
-                <div className="w-full h-14 bg-white rounded-2xl flex items-center justify-center px-4 overflow-hidden border border-border/20 shadow-inner">
-                  <span className="text-3xl font-bold text-foreground tracking-wider truncate">{formattedDial}</span>
-                  <span className={cn('ml-1 h-8 w-0.5 bg-primary/30', number.length < 15 && 'animate-pulse')} />
-                </div>
+                <input
+                  type="tel"
+                  value={formattedDial}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const hasPlus = val.startsWith('+');
+                    const digits = val.replace(/\D/g, '');
+                    setNumber(hasPlus ? '+' + digits : digits);
+                  }}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pasted = e.clipboardData.getData('text');
+                    const hasPlus = pasted.trim().startsWith('+');
+                    const digits = pasted.replace(/\D/g, '');
+                    setNumber(hasPlus ? '+' + digits : digits);
+                  }}
+                  placeholder="Enter number"
+                  className="w-full h-14 bg-white rounded-2xl flex items-center justify-center px-4 overflow-hidden border border-border/20 shadow-inner text-3xl font-bold text-foreground tracking-wider truncate text-center outline-none focus:border-primary/40"
+                />
                 {directoryUser ? (
                   <p className="mt-1 text-xs font-medium text-primary">{directoryUser.name} is an app user — will ring in their browser</p>
                 ) : number.trim().length >= 7 ? (
@@ -430,12 +446,7 @@ export function Calls() {
           )}
         </div>
       </div>
-    );
-  }
-
-  return (
-    <>
-      {!isDesktop && <MobileCalls />}
+      )}
       {isDesktop && (
         <div className="space-y-6">
       {/* Active Line & Settings */}
@@ -650,10 +661,25 @@ export function Calls() {
           <Card className="glass-card flex flex-col items-center rounded-2xl p-4 md:p-5">
             <div className="mb-4 w-full text-center">
               <h3 className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Manual Entry</h3>
-              <div className="flex h-12 w-full items-center justify-center overflow-hidden rounded-xl bg-white/40 px-4">
-                <span className="truncate text-xl font-semibold tracking-widest text-primary">{number}</span>
-                <span className={cn('ml-1 h-6 w-0.5 bg-primary/30', number.length < 15 && 'animate-pulse')} />
-              </div>
+              <input
+                type="tel"
+                value={number}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const hasPlus = val.startsWith('+');
+                  const digits = val.replace(/\D/g, '');
+                  setNumber(hasPlus ? '+' + digits : digits);
+                }}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  const pasted = e.clipboardData.getData('text');
+                  const hasPlus = pasted.trim().startsWith('+');
+                  const digits = pasted.replace(/\D/g, '');
+                  setNumber(hasPlus ? '+' + digits : digits);
+                }}
+                placeholder="Enter number"
+                className="h-12 w-full overflow-hidden rounded-xl bg-white/40 px-4 text-xl font-semibold tracking-widest text-primary outline-none focus:bg-white focus:ring-1 focus:ring-primary/30 text-center"
+              />
               {directoryUser ? (
                 <p className="mt-1 text-xs font-medium text-primary">
                   {directoryUser.name} is an app user — will ring in their browser
