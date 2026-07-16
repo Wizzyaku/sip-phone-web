@@ -481,7 +481,7 @@ export function Messages() {
                   onClick={() => handleSelectConversation(conv.id)}
                   className={cn(
                     'flex w-full items-center gap-2 rounded-xl p-2 text-left transition-all md:gap-3 md:rounded-2xl md:p-3',
-                    isActive ? 'border border-primary/10 bg-white shadow-sm' : 'hover:bg-primary/5'
+                    isActive ? 'border border-primary/10 bg-card shadow-sm' : 'hover:bg-primary/5'
                   )}
                 >
                   <div className="relative">
@@ -577,7 +577,7 @@ export function Messages() {
                         'relative rounded-xl p-2 text-xs group md:rounded-2xl md:p-3 md:text-sm',
                         msg.direction === 'outbound'
                           ? 'rounded-tr-none bg-primary text-primary-foreground'
-                          : 'rounded-tl-none border bg-white text-foreground'
+                          : 'rounded-tl-none border bg-card text-foreground'
                       )}
                     >
                       <MessageContent msg={msg} />

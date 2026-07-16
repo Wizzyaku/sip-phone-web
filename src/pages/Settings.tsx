@@ -151,6 +151,7 @@ export function Settings() {
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={cn(
                   'flex items-center gap-1.5 md:gap-2 border-b-2 px-1 md:px-2 pb-3 md:pb-4 text-xs md:text-sm font-medium transition-all',
+                  tab.id === 'appearance' && 'hidden md:flex',
                   active ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
                 )}
               >

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Cloud, CheckCircle, Globe, Shield, ArrowRight, Loader2, Mail, Lock } from 'lucide-react';
+import { Cloud, CheckCircle, Globe, Shield, ArrowRight, Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { supabase } from '../lib/supabase';
@@ -12,6 +12,7 @@ export function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +64,7 @@ export function Login() {
       </header>
 
       {/* Main */}
-      <main className="flex-grow flex items-center justify-center px-4 py-8 md:py-12">
+      <main className="flex-grow flex items-center justify-center px-4 py-4 md:py-12">
         <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-center">
           {/* Left: Branding */}
           <div className="hidden lg:block lg:col-span-6 space-y-6 text-left">
@@ -145,13 +146,20 @@ export function Login() {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-9 md:pl-10 h-11 md:h-12 rounded-xl text-sm bg-background/50"
+                      className="pl-9 md:pl-10 pr-9 md:pr-10 h-11 md:h-12 rounded-xl text-sm bg-background/50"
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((s) => !s)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="h-4 md:h-5 w-4 md:w-5" /> : <Eye className="h-4 md:h-5 w-4 md:w-5" />}
+                    </button>
                   </div>
                 </div>
 
@@ -181,8 +189,8 @@ export function Login() {
                 </Button>
               </form>
 
-              <div className="mt-5 pt-5 md:mt-6 md:pt-6 border-t border-border/50 text-center relative z-10">
-                <p className="text-muted-foreground text-[11px] md:text-sm mb-3 md:mb-4">Or sign in with</p>
+              <div className="mt-1 pt-2 md:mt-2 md:pt-3 border-t border-border/50 text-center relative z-10">
+                <p className="text-muted-foreground text-[11px] md:text-sm mb-1.5 md:mb-3">Or sign in with</p>
                 <div className="grid grid-cols-1 gap-2 md:gap-3">
                   <Button variant="outline" className="h-10 md:h-11 rounded-xl bg-background/50">
                     <svg className="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-2" viewBox="0 0 24 24">
@@ -194,6 +202,7 @@ export function Login() {
                     <span className="font-semibold text-xs md:text-sm">Google</span>
                   </Button>
                 </div>
+                <p className="text-[11px] md:text-sm text-muted-foreground mt-2 md:mt-3">Don't have an account? <Link to="/signup" className="text-primary font-semibold hover:underline">Sign up here</Link></p>
               </div>
             </div>
           </div>

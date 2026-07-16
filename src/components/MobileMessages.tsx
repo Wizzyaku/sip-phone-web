@@ -89,7 +89,7 @@ function ChatBubble({ msg }: { msg: Message }) {
       <div
         className={cn(
           'max-w-[85%] min-w-0 space-y-1 overflow-hidden rounded-2xl p-3 shadow-sm',
-          isSent ? 'rounded-tr-none bg-primary text-primary-foreground' : 'rounded-tl-none border bg-white text-foreground'
+          isSent ? 'rounded-tr-none bg-primary text-primary-foreground' : 'rounded-tl-none border bg-card text-foreground'
         )}
       >
         <p className="text-[13px] leading-snug break-words">{msg.body}</p>
@@ -213,7 +213,7 @@ export function MobileMessages(props: MobileMessagesProps) {
                   className={cn(
                     'flex w-full min-w-0 max-w-full items-center gap-3 rounded-2xl p-3 text-left transition-transform active:scale-[0.98]',
                     unread
-                      ? 'relative border border-primary/20 bg-white shadow-sm'
+                      ? 'relative border border-primary/20 bg-card shadow-sm'
                       : 'glass-card'
                   )}
                 >
@@ -470,7 +470,7 @@ export function MobileMessages(props: MobileMessagesProps) {
                 </div>
                 <ChevronDown className="h-5 w-5 text-muted-foreground" />
               </div>
-              <div className="rounded-2xl border border-border/20 bg-white p-3 shadow-sm">
+              <div className="rounded-2xl border border-border/20 bg-card p-3 shadow-sm">
                 <textarea
                   value={props.body}
                   onChange={(e) => props.setBody(e.target.value)}

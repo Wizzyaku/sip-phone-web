@@ -148,7 +148,7 @@ export function Usage() {
   return (
     <div className="space-y-4 md:space-y-6 md:pb-6">
       {/* Header & Controls */}
-      <div className="flex flex-col justify-between gap-3 md:gap-4 md:flex-row md:items-center">
+      <div className="flex flex-col justify-between gap-3 md:gap-4 md:flex-row md:items-center mt-2 md:mt-0 -mb-[5px] md:mb-0">
         <div className="hidden md:block">
           <h1 className="text-2xl font-bold tracking-tight">Usage Analytics</h1>
           <p className="text-sm text-muted-foreground">Monitor your global communication performance and token spend.</p>

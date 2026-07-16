@@ -44,7 +44,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   };
 
   return (
-    <aside className="relative flex h-full w-[280px] flex-col overflow-hidden border-r border-white/20 bg-white/65 backdrop-blur-xl py-4 px-4 lg:bg-white/20 lg:backdrop-blur-xl lg:fixed lg:left-0 lg:top-0 lg:h-screen">
+    <aside className="relative flex h-full w-[280px] flex-col overflow-hidden border-r border-border/20 bg-card/65 backdrop-blur-xl py-4 px-4 lg:bg-card/20 lg:backdrop-blur-xl lg:fixed lg:left-0 lg:top-0 lg:h-screen dark:bg-zinc-900/80 dark:lg:bg-zinc-900/80">
       <div className="mb-4 px-2 hidden lg:block">
         <div className="flex items-center gap-2 text-primary">
           <PhoneCall className="h-6 w-6" />
@@ -87,7 +87,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         })}
       </nav>
 
-      <div className="mt-auto flex flex-col gap-0.5 border-t border-white/20 pt-3">
+      <div className="mt-auto flex flex-col gap-0.5 border-t border-border/20 pt-3">
         <Button className="w-full rounded-lg shadow-lg shadow-primary/20 mb-2 h-10 text-base" onClick={() => navigate('/settings')}>
           Buy Number
         </Button>
