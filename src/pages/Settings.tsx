@@ -140,7 +140,7 @@ export function Settings() {
       </div>
 
       {/* Tabs */}
-      <div className="overflow-x-auto custom-scrollbar -mx-2 md:mx-0 px-2 md:px-0">
+      <div className="overflow-x-auto custom-scrollbar -mx-[1%] md:mx-0 px-[1%] md:px-0">
         <div className="flex min-w-max gap-4 md:gap-6 border-b border-border/50">
           {tabs.map((tab) => {
             const Icon = tab.icon;

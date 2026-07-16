@@ -198,7 +198,7 @@ export function PhoneNumbers() {
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-2.5 p-2.5 md:space-y-6 md:p-4 lg:space-y-8 lg:p-6">
+    <div className="space-y-2.5 md:space-y-6 md:p-4 lg:space-y-8 lg:p-6">
       {/* Page Title & Primary Actions */}
       <div className="flex flex-col justify-between gap-2.5 md:flex-row md:items-end md:gap-4">
         <div className="hidden md:block">

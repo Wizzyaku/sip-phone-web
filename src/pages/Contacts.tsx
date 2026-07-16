@@ -210,7 +210,7 @@ export function Contacts() {
       </div>
 
       {/* Search Bar & View Toggle */}
-      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="flex flex-col sm:flex-row gap-2 md:gap-3 items-center justify-between">
         <div className="relative w-full md:max-w-md">
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 md:h-4 md:w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -220,15 +220,15 @@ export function Contacts() {
               setQuery(e.target.value);
               setPage(1);
             }}
-            className="rounded-lg md:rounded-xl border-border bg-white pl-9 md:pl-10 h-9 md:h-10 text-xs md:text-sm placeholder:text-muted-foreground shadow-sm"
+            className="rounded-lg md:rounded-xl border-border bg-card pl-9 md:pl-10 h-8 md:h-10 text-xs md:text-sm placeholder:text-muted-foreground shadow-sm"
           />
         </div>
         
         <div className="flex items-center justify-between w-full sm:w-auto">
           <span className="text-[10px] md:text-sm text-muted-foreground">{filtered.length} contacts</span>
-          <Button size="sm" className="md:hidden rounded-lg px-2.5 py-1.5 text-[10px]" onClick={() => setAddModalOpen(true)}>
-            <UserPlus className="h-3.5 w-3.5 mr-1" />
-            Add Contact
+          <Button size="sm" className="md:hidden rounded-lg h-7 px-2 text-[10px]" onClick={() => setAddModalOpen(true)}>
+            <UserPlus className="h-3 w-3 mr-0.5" />
+            Add
           </Button>
           <div className="hidden md:flex gap-1 rounded-lg bg-muted p-1 ml-4">
             <button
@@ -396,8 +396,61 @@ export function Contacts() {
             </Card>
           </div>
 
-          {/* Grid View & Mobile List */}
-          <div className={cn("grid grid-cols-1 gap-3 md:gap-4 sm:grid-cols-2 lg:grid-cols-3", viewMode === 'list' && "hidden md:hidden max-md:grid")}>
+          {/* Mobile Compact List */}
+          <div className="md:hidden flex flex-col gap-2">
+            {contacts.map((contact) => (
+              <div
+                key={contact.id}
+                className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-card p-2 shadow-sm transition-all hover:shadow-md"
+              >
+                <Avatar className={cn('h-9 w-9 shrink-0', contact.avatarColor)}>
+                  <AvatarFallback className="text-[11px] font-bold">{contact.initials}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <p className="truncate text-[13px] font-bold text-foreground">{contact.name}</p>
+                    <span className="text-[9px] text-muted-foreground shrink-0">{contact.phoneType}</span>
+                  </div>
+                  <p className="truncate text-[10px] text-muted-foreground">{contact.company}</p>
+                  <div className="mt-0.5 flex items-center gap-1">
+                    {contact.tags.map((tag, i) => (
+                      <span
+                        key={i}
+                        className={cn('rounded px-1 py-px text-[8px] font-semibold border', tagStyles[tag.variant])}
+                      >
+                        {tag.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-0.5">
+                  <button
+                    onClick={() => handleCall(contact.number)}
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary/20"
+                    aria-label={`Call ${contact.name}`}
+                  >
+                    <Phone className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleStartChat(contact.number)}
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary/20"
+                    aria-label={`Message ${contact.name}`}
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
+                    aria-label="More options"
+                  >
+                    <MoreVertical className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Grid View */}
+          <div className={cn("hidden md:grid grid-cols-1 gap-3 md:gap-4 sm:grid-cols-2 lg:grid-cols-3", viewMode === 'list' && "md:hidden")}>
             {contacts.map((contact) => (
               <Card key={contact.id} className="glass-card rounded-xl md:rounded-2xl p-3 md:p-5 hover:shadow-md transition-all">
                 <div className="flex items-start gap-3 md:gap-4">

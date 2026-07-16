@@ -262,7 +262,7 @@ export function Calls() {
         <div className="flex-1 overflow-y-auto flex flex-col w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
           {/* View 1: Recents & Logs */}
           {mobileTab === 'recents' && (
-            <div className="flex flex-col gap-4 -mx-2 px-2 pt-3 md:-mx-4 md:px-4 lg:mx-0 lg:px-4">
+            <div className="flex flex-col gap-4 -mx-[1%] px-[1%] pt-3 md:-mx-4 md:px-4 lg:mx-0 lg:px-4">
               {/* Active line & filter */}
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">

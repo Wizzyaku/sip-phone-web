@@ -355,7 +355,7 @@ export function Messages() {
   return (
     <div className="relative h-[calc(100vh-8rem)] w-full min-w-0 overflow-hidden bg-background md:h-[calc(100vh-7.5rem)] md:rounded-2xl md:border md:border-border/30">
       {!isDesktop && (
-        <div className="absolute inset-0 -mx-2 w-[calc(100%+1rem)] md:-mx-4 md:w-[calc(100%+2rem)]">
+        <div className="absolute inset-0 -mx-[1%] w-[calc(100%+2%)] md:-mx-4 md:w-[calc(100%+2rem)]">
         <MobileMessages
           conversations={conversations}
           activeConversation={activeConversation}
