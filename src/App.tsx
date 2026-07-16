@@ -1,5 +1,6 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate, useRouteError } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { Layout } from './layout/Layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NotificationToast } from './components/NotificationToast';
@@ -140,6 +141,7 @@ function App() {
       <Suspense fallback={pageFallback}>
         <AppProviders />
         <RouterProvider router={router} />
+        <Analytics />
       </Suspense>
     </ErrorBoundary>
   );
