@@ -137,19 +137,19 @@ export function Billing() {
       <div className="grid grid-cols-1 items-start gap-2.5 md:gap-6 lg:grid-cols-12">
         {/* Left Column: Balance & Packages */}
         <div className="space-y-3 md:space-y-6 lg:col-span-7">
-          <Card className="glass-card rounded-xl md:rounded-[1.5rem] overflow-hidden border border-border">
-            <CardContent className="p-3.5 md:p-6 bg-gradient-to-br from-indigo-950 via-primary to-primary/90 text-white relative">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-[30px] -mr-8 -mt-8 pointer-events-none" />
+          <Card className="glass-card rounded-xl md:rounded-[1.5rem] overflow-hidden border-2 border-primary/40 shadow-[0_0_12px_rgba(91,91,214,0.3)]">
+            <CardContent className="p-4 md:p-6 bg-gradient-to-br from-indigo-950 via-primary to-primary/90 text-white relative">
+              <div className="absolute top-0 right-0 w-28 h-28 bg-white/10 rounded-full blur-[30px] -mr-8 -mt-8 pointer-events-none" />
               <div className="flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-2.5 md:gap-4">
-                  <div className="flex h-9 w-9 md:h-12 md:w-12 items-center justify-center rounded-lg md:rounded-xl bg-white/10 backdrop-blur-sm shadow-sm border border-white/20 text-white">
-                    <Wallet className="h-4.5 w-4.5 md:h-6 w-6" />
+                <div className="flex items-center gap-3 md:gap-4">
+                  <div className="flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-lg md:rounded-xl bg-white/10 backdrop-blur-sm shadow-sm border border-white/30 text-white">
+                    <Wallet className="h-5.5 w-5.5 md:h-6 w-6" />
                   </div>
                   <div>
-                    <p className="text-[10px] md:text-sm text-white/70 font-semibold uppercase tracking-wider mb-0">Token Balance</p>
-                    <p className="text-lg md:text-3xl font-black text-white leading-none tracking-tight">
+                    <p className="text-xs md:text-sm text-white/80 font-bold uppercase tracking-wider mb-0.5">Token Balance</p>
+                    <p className="text-2xl md:text-3xl font-black text-white leading-none tracking-tight">
                       {balanceLoading || balance === null ? (
-                        <span className="inline-block h-6 w-24 animate-pulse rounded bg-white/20" />
+                        <span className="inline-block h-7 w-28 animate-pulse rounded bg-white/20" />
                       ) : (
                         formatTokens(balance.tokens)
                       )}
@@ -157,8 +157,8 @@ export function Billing() {
                   </div>
                 </div>
                 <div className="text-right flex flex-col justify-end">
-                  <p className="text-[9px] md:text-xs text-white/70 font-medium">1 NGN / token</p>
-                  <p className="text-[10px] md:text-sm font-bold text-white">₦1.00 min</p>
+                  <p className="text-[10px] md:text-xs text-white/80 font-semibold">1 NGN / token</p>
+                  <p className="text-xs md:text-sm font-bold text-white">₦1.00 min</p>
                 </div>
               </div>
             </CardContent>
@@ -199,11 +199,11 @@ export function Billing() {
             </div>
           </div>
 
-          <Card className="glass-card rounded-lg md:rounded-2xl border border-border">
-            <CardContent className="space-y-2 md:space-y-4 p-2.5 md:p-6">
-              <div className="flex items-center gap-2 border-b border-border/50 pb-2">
-                <Zap className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
-                <p className="text-[11px] md:text-sm font-bold text-foreground">Custom amount</p>
+          <Card className="glass-card rounded-lg md:rounded-2xl border-2 border-border shadow-[0_0_8px_rgba(91,91,214,0.15)]">
+            <CardContent className="space-y-2.5 md:space-y-4 p-3.5 md:p-6">
+              <div className="flex items-center gap-2 border-b-2 border-border/60 pb-2">
+                <Zap className="h-4 w-4 md:h-4 md:w-4 text-primary" />
+                <p className="text-[13px] md:text-sm font-bold text-foreground">Custom amount</p>
               </div>
               <div className="flex items-center gap-2">
                 <Input
@@ -215,13 +215,13 @@ export function Billing() {
                     setCustomTokens(e.target.value);
                     setSelectedPackage(null);
                   }}
-                  className="rounded-lg h-9 md:h-12 text-[13px] md:text-sm font-medium bg-background border-border"
+                  className="rounded-lg h-11 md:h-12 text-sm md:text-sm font-medium bg-background border-2 border-border"
                 />
-                <span className="text-[10px] md:text-sm font-semibold text-muted-foreground whitespace-nowrap">tokens</span>
+                <span className="text-xs md:text-sm font-semibold text-muted-foreground whitespace-nowrap">tokens</span>
               </div>
               {customTokens && selectedPackage === null && (
-                <div className="flex items-center gap-2 bg-primary/5 p-2 md:p-2.5 rounded-lg border border-primary/20">
-                  <p className="text-[10px] md:text-sm font-bold text-primary">
+                <div className="flex items-center gap-2 bg-primary/5 p-2.5 md:p-2.5 rounded-lg border border-primary/30">
+                  <p className="text-xs md:text-sm font-bold text-primary">
                     Cost: {formatCurrency(Number(customTokens) * 100, 'NGN')}
                   </p>
                 </div>
@@ -257,20 +257,20 @@ export function Billing() {
           )}
 
           <Button
-            className="h-10 md:h-14 w-full rounded-lg md:rounded-xl text-[13px] md:text-base font-bold border border-primary/20 shadow-[0_8px_20px_rgba(91,91,214,0.3)] active:scale-[0.98] transition-transform"
+            className="h-12 md:h-14 w-full rounded-lg md:rounded-xl text-sm md:text-base font-bold border-2 border-primary/30 shadow-[0_8px_24px_rgba(91,91,214,0.4)] active:scale-[0.98] transition-transform"
             onClick={handlePay}
             disabled={processing || !activePackage}
           >
             {processing ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 md:h-5 md:w-5 animate-spin" />
+                <Loader2 className="mr-2 h-5 w-5 md:h-5 md:w-5 animate-spin" />
                 Processing...
               </>
             ) : (
               <>
-                <CreditCard className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                <CreditCard className="mr-2 h-5 w-5 md:h-5 md:w-5" />
                 Pay {activePackage ? formatCurrency(activePackage.priceMinor, activePackage.currency) : ''}
-                <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
+                <ArrowRight className="ml-2 h-5 w-5 md:h-5 md:w-5" />
               </>
             )}
           </Button>

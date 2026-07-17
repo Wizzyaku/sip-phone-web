@@ -225,3 +225,50 @@ begin
   where reference = p_reference and user_id = p_user_id;
 end;
 $$ language plpgsql security definer;
+
+-- ------------------------------------------------------------
+-- 6. Call logs
+--    Stores per-user call history (incoming, outgoing, missed).
+--    Each row belongs to a specific user identified by their email.
+-- ------------------------------------------------------------
+create table if not exists public.call_logs (
+  id uuid default gen_random_uuid() primary key,
+  user_email text not null,
+  name text not null,
+  phone text not null,
+  type text not null default 'outgoing',
+  duration text not null default '0m 00s',
+  recorded boolean not null default false,
+  created_at timestamp with time zone default now()
+);
+
+-- Index for fast per-user queries
+create index if not exists call_logs_user_email_idx on public.call_logs(user_email);
+create index if not exists call_logs_created_at_idx on public.call_logs(created_at desc);
+
+alter table public.call_logs enable row level security;
+
+-- RLS: users can only see/manage their own call logs
+drop policy if exists "Users can read own call_logs" on public.call_logs;
+create policy "Users can read own call_logs"
+  on public.call_logs
+  for select
+  using (
+    user_email = (select email from auth.users where id = auth.uid())
+  );
+
+drop policy if exists "Users can insert own call_logs" on public.call_logs;
+create policy "Users can insert own call_logs"
+  on public.call_logs
+  for insert
+  with check (
+    user_email = (select email from auth.users where id = auth.uid())
+  );
+
+drop policy if exists "Users can delete own call_logs" on public.call_logs;
+create policy "Users can delete own call_logs"
+  on public.call_logs
+  for delete
+  using (
+    user_email = (select email from auth.users where id = auth.uid())
+  );

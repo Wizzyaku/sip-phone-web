@@ -61,7 +61,7 @@ export default function BuyNumber() {
   return (
     <div className="flex-1 w-full md:p-4 pb-4 flex flex-col gap-3 md:gap-4 relative">
       {/* Sticky Header & Filter Section */}
-      <div className="sticky top-0 z-30 flex flex-col gap-3 -mx-[1%] md:-mx-4 px-[1%] md:px-4 pt-2 md:pt-4 pb-2 bg-background/95 backdrop-blur-md shadow-sm border-b border-border/50">
+      <div className="sticky top-0 z-30 flex flex-col gap-3 -mx-[10px] md:-mx-4 px-[10px] md:px-4 pt-2 md:pt-4 pb-2 bg-background/95 backdrop-blur-md shadow-sm border-b border-border/50">
         {/* Header */}
         <div className="hidden md:flex shrink-0 flex-row items-end justify-between gap-3">
           <div>

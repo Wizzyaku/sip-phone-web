@@ -225,9 +225,9 @@ export function Contacts() {
         </div>
         
         <div className="flex items-center justify-between w-full sm:w-auto">
-          <span className="text-[10px] md:text-sm text-muted-foreground">{filtered.length} contacts</span>
-          <Button size="sm" className="md:hidden rounded-lg h-7 px-2 text-[10px]" onClick={() => setAddModalOpen(true)}>
-            <UserPlus className="h-3 w-3 mr-0.5" />
+          <span className="text-lg md:text-sm font-black text-foreground tracking-tight">{filtered.length} <span className="text-muted-foreground font-bold">contacts</span></span>
+          <Button size="sm" className="md:hidden rounded-lg h-8 px-3 text-xs font-bold shadow-sm" onClick={() => setAddModalOpen(true)}>
+            <UserPlus className="h-3.5 w-3.5 mr-1" />
             Add
           </Button>
           <div className="hidden md:flex gap-1 rounded-lg bg-muted p-1 ml-4">
@@ -397,52 +397,52 @@ export function Contacts() {
           </div>
 
           {/* Mobile Compact List */}
-          <div className="md:hidden flex flex-col gap-2">
+          <div className="md:hidden flex flex-col gap-2.5">
             {contacts.map((contact) => (
               <div
                 key={contact.id}
-                className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-card p-2 shadow-sm transition-all hover:shadow-md"
+                className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 shadow-sm transition-all hover:shadow-md"
               >
-                <Avatar className={cn('h-9 w-9 shrink-0', contact.avatarColor)}>
-                  <AvatarFallback className="text-[11px] font-bold">{contact.initials}</AvatarFallback>
+                <Avatar className={cn('h-11 w-11 shrink-0', contact.avatarColor)}>
+                  <AvatarFallback className="text-sm font-bold">{contact.initials}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1">
-                    <p className="truncate text-[13px] font-bold text-foreground">{contact.name}</p>
-                    <span className="text-[9px] text-muted-foreground shrink-0">{contact.phoneType}</span>
+                    <p className="truncate text-sm font-bold text-foreground">{contact.name}</p>
+                    <span className="text-[10px] text-muted-foreground shrink-0">{contact.phoneType}</span>
                   </div>
-                  <p className="truncate text-[10px] text-muted-foreground">{contact.company}</p>
-                  <div className="mt-0.5 flex items-center gap-1">
+                  <p className="truncate text-xs text-muted-foreground">{contact.company}</p>
+                  <div className="mt-1 flex items-center gap-1">
                     {contact.tags.map((tag, i) => (
                       <span
                         key={i}
-                        className={cn('rounded px-1 py-px text-[8px] font-semibold border', tagStyles[tag.variant])}
+                        className={cn('rounded px-1.5 py-0.5 text-[9px] font-semibold border', tagStyles[tag.variant])}
                       >
                         {tag.label}
                       </span>
                     ))}
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-0.5">
+                <div className="flex shrink-0 items-center gap-1">
                   <button
                     onClick={() => handleCall(contact.number)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary/20"
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary/20"
                     aria-label={`Call ${contact.name}`}
                   >
-                    <Phone className="h-3.5 w-3.5" />
+                    <Phone className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleStartChat(contact.number)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary/20"
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary/20"
                     aria-label={`Message ${contact.name}`}
                   >
-                    <MessageSquare className="h-3.5 w-3.5" />
+                    <MessageSquare className="h-4 w-4" />
                   </button>
                   <button
-                    className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
                     aria-label="More options"
                   >
-                    <MoreVertical className="h-3.5 w-3.5" />
+                    <MoreVertical className="h-4 w-4" />
                   </button>
                 </div>
               </div>

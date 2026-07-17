@@ -21,6 +21,11 @@ import {
   RotateCcw,
   Check,
   Phone,
+  KeyRound,
+  Lock,
+  Eye,
+  EyeOff,
+  Mail,
 } from 'lucide-react';
 import axios from 'axios';
 import { Card, CardContent } from '../components/ui/card';
@@ -79,6 +84,17 @@ export function Settings() {
   const [verifyStatus, setVerifyStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Password reset state
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [resetStep, setResetStep] = useState<'form' | 'code-sent' | 'success'>('form');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [codeResendTimer, setCodeResendTimer] = useState(0);
+
   const accountNumber = '#PRO-8892-XKB-001';
 
   const handleSave = async () => {
@@ -131,6 +147,101 @@ export function Settings() {
     navigate('/login');
   };
 
+  const handleSendResetCode = async () => {
+    if (!newPassword || newPassword.length < 6) {
+      setResetError('Password must be at least 6 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setResetError('Passwords do not match.');
+      return;
+    }
+    setResetLoading(true);
+    setResetError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: user.email,
+        options: { shouldCreateUser: false },
+      });
+      if (error) throw error;
+      setResetStep('code-sent');
+      setCodeResendTimer(60);
+      const interval = setInterval(() => {
+        setCodeResendTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to send verification code.';
+      setResetError(message);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleVerifyAndReset = async () => {
+    if (verificationCode.length !== 6) {
+      setResetError('Please enter the 6-digit verification code.');
+      return;
+    }
+    setResetLoading(true);
+    setResetError(null);
+    try {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email: user.email,
+        token: verificationCode,
+        type: 'email',
+      });
+      if (verifyError) throw verifyError;
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+      if (updateError) throw updateError;
+      setResetStep('success');
+      setNewPassword('');
+      setConfirmPassword('');
+      setVerificationCode('');
+      window.setTimeout(() => {
+        setResetStep('form');
+      }, 4000);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Verification failed. Please try again.';
+      setResetError(message);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (codeResendTimer > 0) return;
+    setResetLoading(true);
+    setResetError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: user.email,
+        options: { shouldCreateUser: false },
+      });
+      if (error) throw error;
+      setCodeResendTimer(60);
+      const interval = setInterval(() => {
+        setCodeResendTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to resend code.';
+      setResetError(message);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-4 md:space-y-6 md:pb-6">
       {/* Header */}
@@ -140,7 +251,7 @@ export function Settings() {
       </div>
 
       {/* Tabs */}
-      <div className="overflow-x-auto custom-scrollbar -mx-[1%] md:mx-0 px-[1%] md:px-0">
+      <div className="overflow-x-auto custom-scrollbar -mx-[10px] md:mx-0 px-[10px] md:px-0">
         <div className="flex min-w-max gap-4 md:gap-6 border-b border-border/50">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -380,6 +491,7 @@ export function Settings() {
 
       {/* Security Tab */}
       {activeTab === 'security' && (
+        <>
         <Card className="glass-card overflow-hidden rounded-xl md:rounded-2xl border-border/50">
           <div className="flex items-center justify-between border-b border-border/30 p-4 md:p-5">
             <h3 className="text-base md:text-lg font-semibold">Security &amp; Access</h3>
@@ -441,6 +553,158 @@ export function Settings() {
             </Button>
           </div>
         </Card>
+
+        {/* Password Reset Section */}
+        <Card className="glass-card rounded-xl md:rounded-2xl border-border/50">
+          <CardContent className="p-4 md:p-5">
+            <div className="mb-3 md:mb-4 flex items-center gap-2 border-b border-border/30 pb-3">
+              <KeyRound className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+              <h3 className="text-base md:text-lg font-semibold">Reset Password</h3>
+            </div>
+
+            {resetStep === 'success' ? (
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
+                  <CheckCircle className="h-6 w-6 text-green-500" />
+                </div>
+                <p className="text-sm font-bold text-foreground">Password Changed Successfully</p>
+                <p className="mt-1 text-xs text-muted-foreground">Your password has been updated. You can continue using your account securely.</p>
+              </div>
+            ) : (
+              <>
+                <p className="mb-4 text-xs md:text-sm text-muted-foreground">
+                  Enter a new password below. A 6-digit verification code will be sent to <span className="font-bold text-foreground">{user.email}</span> to confirm the change.
+                </p>
+
+                {resetStep === 'form' && (
+                  <div className="space-y-3 md:space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">New Password</label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
+                        <Input
+                          type={showNewPassword ? 'text' : 'password'}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Enter new password"
+                          className="pl-9 pr-9 h-10 md:h-11 rounded-lg md:rounded-xl bg-background text-xs md:text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {showNewPassword ? <EyeOff className="h-3.5 w-3.5 md:h-4 md:w-4" /> : <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">Confirm Password</label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
+                        <Input
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Confirm new password"
+                          className="pl-9 pr-9 h-10 md:h-11 rounded-lg md:rounded-xl bg-background text-xs md:text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5 md:h-4 md:w-4" /> : <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {resetError && (
+                      <div className="flex items-center gap-1.5 text-[10px] md:text-sm text-red-500">
+                        <AlertCircle className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
+                        {resetError}
+                      </div>
+                    )}
+
+                    <Button
+                      onClick={handleSendResetCode}
+                      disabled={resetLoading || !newPassword || !confirmPassword}
+                      className="w-full h-10 md:h-11 rounded-lg md:rounded-xl text-xs md:text-sm"
+                    >
+                      {resetLoading ? (
+                        <><Loader2 className="mr-2 h-3.5 w-3.5 md:h-4 md:w-4 animate-spin" />Sending Code...</>
+                      ) : (
+                        <><Mail className="mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />Send Verification Code</>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {resetStep === 'code-sent' && (
+                  <div className="space-y-3 md:space-y-4">
+                    <div className="flex items-center gap-2 rounded-lg md:rounded-xl bg-primary/5 border border-primary/30 p-3">
+                      <Mail className="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
+                      <p className="text-[10px] md:text-sm text-foreground">
+                        A 6-digit code was sent to <span className="font-bold text-primary">{user.email}</span>. Enter it below to confirm your password reset.
+                      </p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">Verification Code</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="Enter 6-digit code"
+                        className="w-full h-12 md:h-14 rounded-lg md:rounded-xl border border-border bg-background text-center text-xl md:text-2xl font-bold tracking-[0.5em] outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+                      />
+                    </div>
+
+                    {resetError && (
+                      <div className="flex items-center gap-1.5 text-[10px] md:text-sm text-red-500">
+                        <AlertCircle className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" />
+                        {resetError}
+                      </div>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
+                      <Button
+                        onClick={handleVerifyAndReset}
+                        disabled={resetLoading || verificationCode.length !== 6}
+                        className="flex-1 h-10 md:h-11 rounded-lg md:rounded-xl text-xs md:text-sm"
+                      >
+                        {resetLoading ? (
+                          <><Loader2 className="mr-2 h-3.5 w-3.5 md:h-4 md:w-4 animate-spin" />Verifying...</>
+                        ) : (
+                          <><ShieldCheck className="mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />Verify &amp; Reset Password</>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleResendCode}
+                        disabled={resetLoading || codeResendTimer > 0}
+                        className="h-10 md:h-11 rounded-lg md:rounded-xl text-xs md:text-sm shrink-0"
+                      >
+                        {codeResendTimer > 0 ? `Resend in ${codeResendTimer}s` : 'Resend Code'}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => { setResetStep('form'); setVerificationCode(''); setResetError(null); }}
+                        className="h-10 md:h-11 rounded-lg md:rounded-xl text-xs md:text-sm shrink-0"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+        </>
       )}
 
       {/* Action Bar */}

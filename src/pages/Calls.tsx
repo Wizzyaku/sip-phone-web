@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo, memo } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import {
   Phone,
@@ -15,6 +16,8 @@ import {
   Delete,
   Video,
   ChevronDown,
+  X,
+  Grid3x3,
 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -28,6 +31,7 @@ import { cn } from '../lib/utils';
 import { useIsDesktop } from '../hooks/useIsDesktop';
 import { LowBalanceModal } from '../components/LowBalanceModal';
 import { hasEnoughBalance } from '../lib/balance';
+import { saveCallLog, fetchCallLogs } from '../lib/callLogs';
 
 const keypad = [
   { digit: '1', sub: '' },
@@ -97,30 +101,45 @@ export function Calls() {
   }, [recentFilter]);
   const [showSettings, setShowSettings] = useState(false);
   const [lowBalanceOpen, setLowBalanceOpen] = useState(false);
-  const [mobileTab, setMobileTab] = useState<'recents' | 'keypad'>('recents');
+  const [dialerOpen, setDialerOpen] = useState(false);
   const location = useLocation();
   const state = location.state as { dialNumber?: string } | null;
 
   useEffect(() => {
     if (state?.dialNumber) {
       setNumber(state.dialNumber);
-      setMobileTab('keypad'); // Auto-switch to keypad on mobile when dialing from contacts
+      setDialerOpen(true);
     }
   }, [state?.dialNumber]);
 
-  const [callHistory, setCallHistory] = useState<CallRecord[]>([
-    { id: '1', name: 'Sarah Jenkins', phone: '+1 (555) 098-7654', time: '10:24 AM', duration: '12m 45s', type: 'incoming', recorded: true, date: new Date(Date.now() - 1000 * 60 * 60 * 2) },
-    { id: '2', name: 'Support Ticket #882', phone: '+1 (800) 912-0033', time: '09:15 AM', duration: '03m 12s', type: 'outgoing', recorded: false, date: new Date(Date.now() - 1000 * 60 * 60 * 4) },
-    { id: '3', name: 'Michael Chen', phone: '+1 (555) 234-5678', time: 'Yesterday', duration: '25m 10s', type: 'incoming', recorded: true, date: new Date(Date.now() - 1000 * 60 * 60 * 28) },
-    { id: '4', name: 'Unknown Number', phone: '+1 (415) 555-1212', time: 'Yesterday', duration: '00m 00s', type: 'missed', recorded: false, date: new Date(Date.now() - 1000 * 60 * 60 * 30) },
-    { id: '5', name: 'Marketing Sync', phone: '+1 (555) 111-2233', time: 'Oct 12', duration: '45m 00s', type: 'outgoing', recorded: true, date: new Date(Date.now() - 1000 * 60 * 60 * 48) },
-    { id: '6', name: 'Emma Wilson', phone: '+1 (555) 444-5566', time: 'Oct 12', duration: '08m 15s', type: 'incoming', recorded: false, date: new Date(Date.now() - 1000 * 60 * 60 * 50) },
-  ]);
+  const user = useAppStore((s) => s.user);
+  const [callHistory, setCallHistory] = useState<CallRecord[]>([]);
 
+  // Load call logs from Supabase for this user
   useEffect(() => {
-    const timer = window.setTimeout(() => setRecentLoading(false), 1200);
-    return () => window.clearTimeout(timer);
-  }, []);
+    let cancelled = false;
+    (async () => {
+      setRecentLoading(true);
+      const logs = await fetchCallLogs(user.email);
+      if (cancelled) return;
+      const records: CallRecord[] = logs.map((log) => {
+        const date = new Date(log.created_at);
+        return {
+          id: log.id,
+          name: log.name,
+          phone: log.phone,
+          time: formatCallTime(date),
+          duration: log.duration,
+          type: log.type as CallType,
+          recorded: log.recorded,
+          date,
+        };
+      });
+      setCallHistory(records);
+      setRecentLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [user.email]);
 
   useEffect(() => {
     let cancelled = false;
@@ -144,22 +163,40 @@ export function Calls() {
       const mins = Math.floor(durationSeconds / 60);
       const secs = durationSeconds % 60;
       const durationStr = `${mins}m ${secs.toString().padStart(2, '0')}s`;
-      setCallHistory((prev) => [
-        {
-          id: crypto.randomUUID(),
-          name: ended.remoteIdentity,
-          phone: ended.remoteIdentity,
-          time: formatCallTime(new Date()),
+      const callType = ended.direction === 'incoming' && durationSeconds === 0 ? 'missed' : ended.direction;
+      const displayName = ended.remoteIdentity
+        .replace(/^sip:/i, '')
+        .replace(/@sip\.telnyx\.com$/i, '');
+
+      // Save to Supabase and update local state
+      (async () => {
+        const saved = await saveCallLog(user.email, {
+          name: displayName,
+          phone: displayName,
+          type: callType as 'incoming' | 'outgoing' | 'missed',
           duration: durationStr,
-          type: ended.direction === 'incoming' && durationSeconds === 0 ? 'missed' : ended.direction,
           recorded: false,
-          date: new Date(),
-        },
-        ...prev,
-      ]);
+        });
+        if (saved) {
+          const date = new Date(saved.created_at);
+          setCallHistory((prev) => [
+            {
+              id: saved.id,
+              name: saved.name,
+              phone: saved.phone,
+              time: formatCallTime(date),
+              duration: saved.duration,
+              type: saved.type as CallType,
+              recorded: saved.recorded,
+              date,
+            },
+            ...prev,
+          ]);
+        }
+      })();
     }
     prevActiveCallRef.current = activeCall;
-  }, [activeCall]);
+  }, [activeCall, user.email]);
 
   const filteredCalls = useMemo(() => {
     let filtered = callHistory;
@@ -233,36 +270,11 @@ export function Calls() {
   return (
     <>
       {!isDesktop && (
-      <div className="flex h-full flex-col gap-0 bg-background" style={{ isolation: 'isolate' }}>
-        {/* Recents / Keypad View Toggle */}
-        <div className="px-4 py-2 shrink-0 bg-background border-b border-border/10">
-          <div className="flex bg-muted rounded-xl p-1 shadow-inner">
-            <button
-              onClick={() => setMobileTab('recents')}
-              className={cn(
-                'flex-1 py-1.5 rounded-lg text-xs font-bold transition-all',
-                mobileTab === 'recents' ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground'
-              )}
-            >
-              Recents
-            </button>
-            <button
-              onClick={() => setMobileTab('keypad')}
-              className={cn(
-                'flex-1 py-1.5 rounded-lg text-xs font-bold transition-all',
-                mobileTab === 'keypad' ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground'
-              )}
-            >
-              Keypad
-            </button>
-          </div>
-        </div>
-
+      <div className="flex h-full flex-col gap-0 bg-background relative">
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto flex flex-col w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
-          {/* View 1: Recents & Logs */}
-          {mobileTab === 'recents' && (
-            <div className="flex flex-col gap-4 -mx-[1%] px-[1%] pt-3 md:-mx-4 md:px-4 lg:mx-0 lg:px-4">
+          {/* Recents & Logs */}
+            <div className="flex flex-col gap-4 -mx-[10px] px-[10px] pt-3 pb-24 md:-mx-4 md:px-4 lg:mx-0 lg:px-4">
               {/* Active line & filter */}
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -274,7 +286,7 @@ export function Calls() {
                     onClick={() => setRecentFilter('all')}
                     className={cn(
                       'rounded-md px-2.5 py-1 text-[10px] font-bold transition-all',
-                      recentFilter === 'all' ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground'
+                      recentFilter === 'all' ? 'bg-card text-primary shadow-sm dark:bg-zinc-800' : 'text-muted-foreground'
                     )}
                   >
                     All
@@ -283,7 +295,7 @@ export function Calls() {
                     onClick={() => setRecentFilter('missed')}
                     className={cn(
                       'rounded-md px-2.5 py-1 text-[10px] font-bold transition-all',
-                      recentFilter === 'missed' ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground'
+                      recentFilter === 'missed' ? 'bg-card text-primary shadow-sm dark:bg-zinc-800' : 'text-muted-foreground'
                     )}
                   >
                     Missed
@@ -313,15 +325,15 @@ export function Calls() {
                 ) : (
                   filteredCalls.map((callItem) => {
                     const Icon = callItem.type === 'missed' ? PhoneMissed : callItem.type === 'incoming' ? PhoneIncoming : PhoneOutgoing;
-                    const iconBg = callItem.type === 'missed' ? 'bg-destructive/10' : callItem.type === 'incoming' ? 'bg-green-100' : 'bg-primary/10';
+                    const iconBg = callItem.type === 'missed' ? 'bg-destructive/10' : callItem.type === 'incoming' ? 'bg-green-500/10' : 'bg-primary/10';
                     const iconColor = callItem.type === 'missed' ? 'text-destructive' : callItem.type === 'incoming' ? 'text-green-600' : 'text-primary';
                     return (
                       <button
                         key={callItem.id}
-                        className="flex w-full items-center gap-3 rounded-xl bg-white p-3 text-left"
+                        className="flex w-full items-center gap-3 rounded-xl bg-card border border-border p-3 text-left shadow-sm transition-all hover:shadow-md"
                         onClick={() => {
                           setNumber(callItem.phone);
-                          setMobileTab('keypad');
+                          setDialerOpen(true);
                         }}
                       >
                         <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full', iconBg)}>
@@ -346,7 +358,7 @@ export function Calls() {
                   <button
                     onClick={() => setRecentPage((p) => Math.max(1, p - 1))}
                     disabled={recentPage === 1}
-                    className="rounded-md bg-white px-3 py-1.5 text-xs font-bold text-foreground shadow-sm disabled:opacity-50"
+                    className="rounded-md bg-card border border-border px-3 py-1.5 text-xs font-bold text-foreground shadow-sm disabled:opacity-50"
                   >
                     Prev
                   </button>
@@ -356,21 +368,48 @@ export function Calls() {
                   <button
                     onClick={() => setRecentPage((p) => Math.min(recentTotalPages, p + 1))}
                     disabled={recentPage === recentTotalPages}
-                    className="rounded-md bg-white px-3 py-1.5 text-xs font-bold text-foreground shadow-sm disabled:opacity-50"
+                    className="rounded-md bg-card border border-border px-3 py-1.5 text-xs font-bold text-foreground shadow-sm disabled:opacity-50"
                   >
                     Next
                   </button>
                 </div>
               )}
             </div>
-          )}
+        </div>
 
-          {/* View 2: Dialer Keypad */}
-          {mobileTab === 'keypad' && (
-            <div className="flex flex-col items-center w-full px-4 h-full justify-start gap-2.5 pt-2">
+        {/* Floating Dialer Button */}
+        <button
+          onClick={() => setDialerOpen(true)}
+          className="fixed bottom-[80px] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_8px_24px_rgba(91,91,214,0.4)] active:scale-90 transition-transform hover:scale-105"
+          aria-label="Open dialer"
+        >
+          <Grid3x3 className="h-6 w-6" />
+        </button>
+
+        {/* Floating Dialer Overlay */}
+        {dialerOpen && createPortal(
+          <div className="fixed inset-0 z-[70] flex items-end justify-center">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setDialerOpen(false)}
+            />
+            {/* Dialer Panel */}
+            <div className="relative w-full max-w-[420px] mx-auto mb-4 rounded-2xl border border-border bg-card shadow-2xl p-4 animate-in slide-in-from-bottom-4 duration-200">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Manual Entry</p>
+                <button
+                  onClick={() => setDialerOpen(false)}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+                  aria-label="Close dialer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
               {/* Screen Display */}
-              <div className="w-full text-center">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-1">Manual Entry</p>
+              <div className="w-full text-center mb-3">
                 <input
                   type="tel"
                   value={formattedDial}
@@ -388,63 +427,64 @@ export function Calls() {
                     setNumber(hasPlus ? '+' + digits : digits);
                   }}
                   placeholder="Enter number"
-                  className="w-full h-14 bg-white rounded-2xl flex items-center justify-center px-4 overflow-hidden border border-border/20 shadow-inner text-3xl font-bold text-foreground tracking-wider truncate text-center outline-none focus:border-primary/40"
+                  className="w-full h-11 bg-muted/50 rounded-xl flex items-center justify-center px-4 overflow-hidden border border-border text-xl font-bold text-foreground tracking-wider truncate text-center outline-none focus:border-primary/40"
                 />
                 {directoryUser ? (
-                  <p className="mt-1 text-xs font-medium text-primary">{directoryUser.name} is an app user — will ring in their browser</p>
+                  <p className="mt-1 text-xs font-medium text-primary">{directoryUser.name} is an app user</p>
                 ) : number.trim().length >= 7 ? (
                   <p className="mt-1 text-xs text-muted-foreground">External number</p>
                 ) : null}
               </div>
 
               {/* Numpad Grid */}
-              <div className="grid grid-cols-3 gap-2.5 max-w-[260px] w-full mx-auto">
+              <div className="grid grid-cols-3 gap-2.5 w-full max-w-[300px] mx-auto mb-3">
                 {keypad.map((item) => (
                   <button
                     key={item.digit}
                     onClick={() => handleDial(item.digit)}
                     disabled={!!activeCall}
                     className={cn(
-                      'dial-pad-btn aspect-square w-full rounded-full bg-white flex flex-col items-center justify-center border border-border/20 shadow-sm transition-all active:scale-95 active:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50'
+                      'dial-pad-btn aspect-square w-full rounded-full bg-muted/50 flex flex-col items-center justify-center border border-border transition-all active:scale-95 active:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50'
                     )}
                   >
-                    <span className="text-[26px] font-medium text-foreground leading-none">{item.digit}</span>
-                    {item.sub && <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mt-1">{item.sub}</span>}
+                    <span className="text-[20px] font-medium text-foreground leading-none">{item.digit}</span>
+                    {item.sub && <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">{item.sub}</span>}
                   </button>
                 ))}
               </div>
 
               {/* Call Actions */}
-              <div className="flex items-center justify-center gap-6 w-full max-w-[260px] mx-auto">
+              <div className="flex items-center justify-center gap-6 w-full max-w-[300px] mx-auto">
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-12 w-12 rounded-2xl bg-white text-muted-foreground border-border/20 shadow-sm hover:bg-muted active:scale-95"
+                  className="h-11 w-11 rounded-xl bg-muted/50 text-muted-foreground border-border hover:bg-muted active:scale-95"
                   onClick={number ? handleBackspace : handleClear}
                   disabled={!number}
                 >
-                  <Delete className="h-6 w-6" />
+                  <Delete className="h-5 w-5" />
                 </Button>
                 <Button
                   size="icon"
-                  className="h-16 w-16 rounded-full bg-primary text-primary-foreground shadow-[0_10px_25px_rgba(91,91,214,0.35)] active:scale-90 transition-transform hover:scale-105"
+                  className="h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-[0_8px_20px_rgba(91,91,214,0.35)] active:scale-90 transition-transform hover:scale-105"
                   onClick={handleCall}
                   disabled={!!activeCall || !number.trim()}
                 >
-                  <Phone className="h-8 w-8" fill="currentColor" />
+                  <Phone className="h-7 w-7" fill="currentColor" />
                 </Button>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-12 w-12 rounded-2xl bg-white text-muted-foreground border-border/20 shadow-sm hover:bg-muted active:scale-95"
+                  className="h-11 w-11 rounded-xl bg-muted/50 text-muted-foreground border-border hover:bg-muted active:scale-95"
                   disabled
                 >
-                  <Video className="h-6 w-6" />
+                  <Video className="h-5 w-5" />
                 </Button>
               </div>
             </div>
-          )}
-        </div>
+          </div>,
+          document.body
+        )}
       </div>
       )}
       {isDesktop && (
@@ -470,10 +510,6 @@ export function Calls() {
             >
               <Settings className="mr-2 h-4 w-4" />
               SIP Settings
-            </Button>
-            <Button variant="outline" size="sm" className="rounded-xl">
-              <History className="mr-2 h-4 w-4" />
-              Global History
             </Button>
           </div>
         </CardContent>
@@ -532,7 +568,7 @@ export function Calls() {
         {/* Recent Calls */}
         <div className="lg:col-span-7">
           <Card className="glass-card flex h-full min-h-[600px] flex-col overflow-hidden rounded-3xl">
-            <div className="flex items-center justify-between border-b border-white/20 bg-white/40 p-6">
+            <div className="flex items-center justify-between border-b border-border bg-muted/40 p-6">
               <h3 className="flex items-center gap-2 text-lg font-semibold">
                 <History className="h-5 w-5 text-primary" />
                 Recent Calls
@@ -544,7 +580,7 @@ export function Calls() {
                     onClick={() => setRecentFilter(t.id)}
                     className={cn(
                       'rounded-md px-3 py-1 text-xs font-bold transition-all',
-                      recentFilter === t.id ? 'bg-white text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                      recentFilter === t.id ? 'bg-card text-primary shadow-sm dark:bg-zinc-800' : 'text-muted-foreground hover:text-foreground'
                     )}
                   >
                     {t.label}
@@ -579,7 +615,7 @@ export function Calls() {
                   return (
                     <div
                       key={callItem.id}
-                      className="group flex cursor-pointer items-center gap-4 rounded-2xl border p-4 transition-all hover:bg-white/60 hover:shadow-sm"
+                      className="group flex cursor-pointer items-center gap-4 rounded-2xl border border-border bg-card p-4 transition-all hover:bg-muted/50 hover:shadow-sm"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-full', bgColor)}>
@@ -611,13 +647,13 @@ export function Calls() {
                 })
               )}
             </div>
-            <div className="border-t border-white/20 p-4">
+            <div className="border-t border-border p-4">
               {recentTotalPages > 1 ? (
                 <div className="flex items-center justify-between">
                   <button
                     onClick={() => setRecentPage((p) => Math.max(1, p - 1))}
                     disabled={recentPage === 1}
-                    className="rounded-md bg-white/60 px-3 py-1.5 text-xs font-bold text-foreground shadow-sm disabled:opacity-50"
+                    className="rounded-md bg-card border border-border px-3 py-1.5 text-xs font-bold text-foreground shadow-sm disabled:opacity-50"
                   >
                     Prev
                   </button>
@@ -627,7 +663,7 @@ export function Calls() {
                   <button
                     onClick={() => setRecentPage((p) => Math.min(recentTotalPages, p + 1))}
                     disabled={recentPage === recentTotalPages}
-                    className="rounded-md bg-white/60 px-3 py-1.5 text-xs font-bold text-foreground shadow-sm disabled:opacity-50"
+                    className="rounded-md bg-card border border-border px-3 py-1.5 text-xs font-bold text-foreground shadow-sm disabled:opacity-50"
                   >
                     Next
                   </button>
@@ -678,7 +714,7 @@ export function Calls() {
                   setNumber(hasPlus ? '+' + digits : digits);
                 }}
                 placeholder="Enter number"
-                className="h-12 w-full overflow-hidden rounded-xl bg-white/40 px-4 text-xl font-semibold tracking-widest text-primary outline-none focus:bg-white focus:ring-1 focus:ring-primary/30 text-center"
+                className="h-12 w-full overflow-hidden rounded-xl bg-muted/40 border border-border px-4 text-xl font-semibold tracking-widest text-primary outline-none focus:bg-card focus:ring-1 focus:ring-primary/30 text-center"
               />
               {directoryUser ? (
                 <p className="mt-1 text-xs font-medium text-primary">
@@ -695,7 +731,7 @@ export function Calls() {
                   onClick={() => handleDial(item.digit)}
                   disabled={!!activeCall}
                   className={cn(
-                    'flex h-12 w-12 flex-col items-center justify-center rounded-full border border-primary/10 shadow-sm transition-all hover:border-primary/40 active:scale-95 active:bg-primary/10 sm:h-14 sm:w-14',
+                    'flex h-12 w-12 flex-col items-center justify-center rounded-full border border-border bg-card shadow-sm transition-all hover:border-primary/40 active:scale-95 active:bg-primary/10 sm:h-14 sm:w-14',
                     activeCall ? 'cursor-not-allowed opacity-50' : 'hover:bg-primary/5'
                   )}
                 >
