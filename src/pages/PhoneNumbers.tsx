@@ -1,278 +1,499 @@
 import { useState, memo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  Plus,
   Search,
   Filter,
-  Activity,
   Phone,
   MessageSquare,
+  Image as ImageIcon,
+  MoreVertical,
+  Plus,
+  Check,
+  X,
+  PhoneForwarded,
   Voicemail,
-  Edit3,
-  BarChart3,
-  RefreshCw,
-  Trash2,
-  CheckCircle2,
-  Lightbulb,
+  ShoppingCart,
 } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
 import { cn } from '../lib/utils';
 
-interface NumberCard {
+interface NumberItem {
   id: string;
-  name: string;
   number: string;
-  country: string;
-  status: 'online' | 'reserved';
-  features: {
-    calls: boolean;
-    sms: boolean;
-    voicemail: boolean;
-  };
+  label: string;
+  flag: string;
+  features: ('voice' | 'sms' | 'mms')[];
+  active: boolean;
+  forwarding?: string;
+  voicemail?: boolean;
+  monthlyCost: number;
 }
 
-const initialNumbers: NumberCard[] = [
+const initialNumbers: NumberItem[] = [
   {
     id: '1',
-    name: 'Sales Desk',
-    number: '+1 (415) 555-0123',
-    country: '🇺🇸',
-    status: 'online',
-    features: { calls: true, sms: true, voicemail: false },
+    number: '+1 (555) 019-2834',
+    label: 'Sales Main Line',
+    flag: '🇺🇸',
+    features: ['voice', 'sms', 'mms'],
+    active: true,
+    forwarding: '+1 (555) 999...',
+    monthlyCost: 7.0,
   },
   {
     id: '2',
-    name: 'Support Line',
-    number: '+44 20 7946 0148',
-    country: '🇬🇧',
-    status: 'online',
-    features: { calls: true, sms: false, voicemail: true },
-  },
-  {
-    id: '3',
-    name: 'Mkt Berlin',
-    number: '+49 30 123456',
-    country: '🇩🇪',
-    status: 'reserved',
-    features: { calls: false, sms: false, voicemail: false },
-  },
-  {
-    id: '4',
-    name: 'Dev Test',
-    number: '+1 (647) 555-9012',
-    country: '🇨🇦',
-    status: 'online',
-    features: { calls: false, sms: true, voicemail: false },
+    number: '+44 20 7946 0958',
+    label: 'UK Support Desk',
+    flag: '🇬🇧',
+    features: ['voice'],
+    active: true,
+    voicemail: true,
+    monthlyCost: 7.0,
   },
 ];
 
-function Toggle({
-  checked,
-  onChange,
-  disabled,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  disabled?: boolean;
-}) {
+const availableNumbers = [
+  { id: 'a1', number: '+1 (310) 555-0199', flag: '🇺🇸', features: ['Voice', 'SMS'], price: 7.0 },
+  { id: 'a2', number: '+1 (212) 555-0844', flag: '🇺🇸', features: ['Voice', 'SMS', 'MMS'], price: 8.5 },
+  { id: 'a3', number: '+1 (415) 555-0912', flag: '🇺🇸', features: ['Voice', 'SMS'], price: 7.0 },
+  { id: 'a4', number: '+44 20 7946 0712', flag: '🇬🇧', features: ['Voice', 'SMS'], price: 8.0 },
+];
+
+const countryFilters = [
+  { label: '🇺🇸 US (+1)', active: true },
+  { label: '🇬🇧 UK (+44)', active: false },
+  { label: '🇨🇦 CA (+1)', active: false },
+  { label: 'Toll-Free', active: false },
+];
+
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label className={cn('relative inline-flex cursor-pointer items-center', disabled && 'cursor-not-allowed opacity-50')}>
-      <input
-        type="checkbox"
-        className="peer sr-only"
-        checked={checked}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.checked)}
-      />
-      <div
+    <button
+      onClick={() => onChange(!checked)}
+      className={cn(
+        'relative inline-block w-8 h-5 rounded-full transition-colors duration-300 shrink-0',
+        checked ? 'bg-indigo-600' : 'bg-slate-300'
+      )}
+    >
+      <span
         className={cn(
-          'peer h-5 w-10 rounded-full transition-colors',
-          checked ? 'bg-primary' : 'bg-muted',
-          disabled && 'bg-muted'
+          'absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white border-4 shadow-sm transition-all duration-300',
+          checked ? 'translate-x-3 border-indigo-600' : 'border-slate-300'
         )}
-      >
-        <div
-          className={cn(
-            'absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
-            checked && 'translate-x-5'
-          )}
-        />
-      </div>
-    </label>
+      />
+    </button>
   );
 }
 
-function NumberCardItem({ data }: { data: NumberCard }) {
-  const [features, setFeatures] = useState(data.features);
-  const isOnline = data.status === 'online';
-
+function FeatureBadge({ icon: Icon, label, color }: { icon: React.ComponentType<{ className?: string }>; label: string; color: string }) {
   return (
-    <div
-      className={cn(
-        'glass-card flex flex-col rounded-2xl p-2.5 transition-transform hover:-translate-y-1 hover:shadow-xl md:rounded-[2rem] md:p-4 lg:p-5',
-        !isOnline && 'opacity-80'
-      )}
-    >
-      <div className="mb-2 flex items-start justify-between md:mb-3">
-        <div className="flex items-center gap-2 md:gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted text-lg shadow-inner md:h-12 md:w-12 md:rounded-2xl md:text-2xl">
-            {data.country}
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold leading-tight md:text-lg">{data.name}</h3>
-            <p className="text-xs text-muted-foreground md:text-sm">{data.number}</p>
-          </div>
-        </div>
-        <div
-          className={cn(
-            'flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold md:px-3 md:py-1 md:text-xs',
-            isOnline
-              ? 'border-primary/20 bg-primary/10 text-primary'
-              : 'border-secondary/20 bg-secondary/10 text-secondary'
-          )}
-        >
-          {isOnline && <span className="h-1 w-1 animate-pulse rounded-full bg-primary md:h-1.5 md:w-1.5" />}
-          {isOnline ? 'ONLINE' : 'RESERVED'}
-        </div>
-      </div>
-
-      <div className={cn('my-2 space-y-1.5 md:my-3 md:space-y-2', !isOnline && 'grayscale-[0.5]')}>
-        <div className="flex items-center justify-between rounded-lg bg-white/40 p-2 md:rounded-xl md:p-3">
-          <div className="flex items-center gap-2">
-            <Phone className="h-3.5 w-3.5 text-muted-foreground md:h-4 md:w-4" />
-            <span className="text-xs md:text-sm">Calls</span>
-          </div>
-          <Toggle checked={features.calls} onChange={(v) => setFeatures((f) => ({ ...f, calls: v }))} disabled={!isOnline} />
-        </div>
-        <div className="flex items-center justify-between rounded-lg bg-white/40 p-2 md:rounded-xl md:p-3">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-3.5 w-3.5 text-muted-foreground md:h-4 md:w-4" />
-            <span className="text-xs md:text-sm">SMS</span>
-          </div>
-          <Toggle checked={features.sms} onChange={(v) => setFeatures((f) => ({ ...f, sms: v }))} disabled={!isOnline} />
-        </div>
-        <div className="flex items-center justify-between rounded-lg bg-white/40 p-2 md:rounded-xl md:p-3">
-          <div className="flex items-center gap-2">
-            <Voicemail className="h-3.5 w-3.5 text-muted-foreground md:h-4 md:w-4" />
-            <span className="text-xs md:text-sm">Voicemail</span>
-          </div>
-          <Toggle
-            checked={features.voicemail}
-            onChange={(v) => setFeatures((f) => ({ ...f, voicemail: v }))}
-            disabled={!isOnline}
-          />
-        </div>
-      </div>
-
-      <div className="mt-auto grid grid-cols-2 gap-1.5 border-t border-white/20 pt-2 md:gap-2 md:pt-3">
-        {!isOnline ? (
-          <button className="flex items-center justify-center gap-1 rounded-md py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/5 md:rounded-lg md:py-2 md:text-sm">
-            <CheckCircle2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
-            Activate
-          </button>
-        ) : (
-          <button className="flex items-center justify-center gap-1 rounded-md py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/5 md:rounded-lg md:py-2 md:text-sm">
-            <Edit3 className="h-3.5 w-3.5 md:h-4 md:w-4" />
-            Rename
-          </button>
-        )}
-        <button className="flex items-center justify-center gap-1 rounded-md py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/5 md:rounded-lg md:py-2 md:text-sm">
-          <BarChart3 className="h-3.5 w-3.5 md:h-4 md:w-4" />
-          Usage
-        </button>
-        <button className="flex items-center justify-center gap-1 rounded-md py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/5 md:rounded-lg md:py-2 md:text-sm">
-          <RefreshCw className="h-3.5 w-3.5 md:h-4 md:w-4" />
-          Renew
-        </button>
-        <button className="flex items-center justify-center gap-1 rounded-md py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/5 md:rounded-lg md:py-2 md:text-sm">
-          <Trash2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
-          Release
-        </button>
-      </div>
-    </div>
+    <span className={cn('px-2 py-0.5 rounded-[6px] text-[9px] font-extrabold border uppercase tracking-wide flex items-center gap-1', color)}>
+      <Icon className="w-2.5 h-2.5" /> {label}
+    </span>
   );
 }
 
 export function PhoneNumbers() {
-  const navigate = useNavigate();
+  const [numbers, setNumbers] = useState(initialNumbers);
+  const [buyModalOpen, setBuyModalOpen] = useState(false);
+  const [selectedNumber, setSelectedNumber] = useState<string | null>(null);
+  const [selectedPrice, setSelectedPrice] = useState<number | null>(null);
+  const [activeFilter, setActiveFilter] = useState(0);
+
+  const totalMonthly = numbers.reduce((sum, n) => sum + n.monthlyCost, 0);
+
+  const toggleActive = (id: string) => {
+    setNumbers((prev) => prev.map((n) => (n.id === id ? { ...n, active: !n.active } : n)));
+  };
+
+  const selectNumber = (id: string, price: number) => {
+    setSelectedNumber(id);
+    setSelectedPrice(price);
+  };
+
+  const featureBadgeConfig = {
+    voice: { icon: Phone, label: 'Voice', color: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
+    sms: { icon: MessageSquare, label: 'SMS', color: 'bg-purple-50 text-purple-600 border-purple-100' },
+    mms: { icon: ImageIcon, label: 'MMS', color: 'bg-amber-50 text-amber-600 border-amber-100' },
+  };
 
   return (
-    <div className="space-y-2.5 p-2.5 md:space-y-6 md:p-4 lg:space-y-8 lg:p-6">
-      {/* Page Title & Primary Actions */}
-      <div className="flex flex-col justify-between gap-2.5 md:flex-row md:items-end md:gap-4">
-        <div>
-          <nav className="mb-1 flex items-center gap-1 text-[10px] text-muted-foreground md:text-xs">
-            <span>Assets</span>
-            <span>/</span>
-            <span className="font-bold text-primary">Phone Numbers</span>
-          </nav>
-          <h2 className="text-xl font-bold text-foreground md:text-3xl">Manage Numbers</h2>
-          <p className="text-xs text-muted-foreground md:text-sm">You have 12 active virtual lines across 4 regions.</p>
-        </div>
-        <div className="flex items-center gap-2 md:gap-3">
-          <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search number or nickname..." className="h-10 rounded-xl pl-9" />
+    <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#F0F4F8] dark:bg-slate-950">
+      {/* ========================================= */}
+      {/* MOBILE LAYOUT (hidden on lg+)             */}
+      {/* ========================================= */}
+      <div className="lg:hidden px-4 pt-3 pb-[10px] flex flex-col gap-3.5">
+        {/* Hero Summary Card */}
+        <div className="animate-fade-in shrink-0 relative overflow-hidden bg-gradient-to-br from-indigo-600 to-purple-700 rounded-[20px] shadow-[0_8px_25px_rgba(79,70,229,0.2)] p-4 flex flex-col gap-4">
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl z-0" />
+          <div className="relative z-10 flex justify-between items-start">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest">Active Lines</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-[28px] font-extrabold text-white tracking-tight leading-none">{numbers.length}</span>
+                <span className="text-[11px] font-bold text-white/90">Numbers</span>
+              </div>
+            </div>
+            <div className="text-right flex flex-col gap-0.5">
+              <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest">Monthly Cost</span>
+              <span className="text-[14px] font-extrabold text-white">${totalMonthly.toFixed(2)}</span>
+            </div>
           </div>
-          <Button variant="outline" className="gap-1.5 rounded-lg px-2.5 py-1.5 text-[10px] md:gap-2 md:rounded-xl md:px-4 md:py-2 md:text-sm">
-            <Filter className="h-3.5 w-3.5 md:h-4 md:w-4" />
-            <span className="hidden sm:inline">Country:</span> All
-          </Button>
-          <Button variant="outline" className="gap-1.5 rounded-lg px-2.5 py-1.5 text-[10px] md:gap-2 md:rounded-xl md:px-4 md:py-2 md:text-sm">
-            <Activity className="h-3.5 w-3.5 md:h-4 md:w-4" />
-            <span className="hidden sm:inline">Status:</span> Online
-          </Button>
-          <Button className="gap-1.5 rounded-lg px-2.5 py-1.5 md:gap-2 md:rounded-xl md:px-4 md:py-2 md:hidden">
-            <Plus className="h-3.5 w-3.5 md:h-4 md:w-4" />
-          </Button>
-          <Button className="hidden gap-2 rounded-xl md:flex">
-            <Plus className="h-4 w-4" />
-            Add
-          </Button>
-        </div>
-      </div>
-
-      {/* Numbers Grid */}
-      <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 md:gap-4 lg:gap-6 lg:grid-cols-3">
-        {initialNumbers.map((n) => (
-          <NumberCardItem key={n.id} data={n} />
-        ))}
-
-        {/* Add New Number Card */}
-        <div className="flex min-h-[240px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-muted/30 p-2.5 text-center transition-colors hover:border-primary/50 md:min-h-[350px] md:rounded-[2rem] md:p-6">
-          <div className="mb-2.5 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary transition-transform group-hover:scale-110 md:mb-4 md:h-16 md:w-16">
-            <Plus className="h-6 w-6 md:h-8 md:w-8" />
+          <div className="relative z-10">
+            <button
+              onClick={() => setBuyModalOpen(true)}
+              className="w-full h-11 bg-white text-indigo-600 hover:bg-slate-50 rounded-[14px] text-[13px] font-extrabold flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(0,0,0,0.1)] active:scale-95 transition-transform"
+            >
+              <ShoppingCart className="w-4 h-4" /> Get New Number
+            </button>
           </div>
-          <h3 className="mb-1 text-sm font-semibold md:text-lg">Add New Number</h3>
-          <p className="mb-2.5 max-w-xs text-xs text-muted-foreground md:mb-6 md:text-sm">
-            Expand your reach with virtual numbers in 100+ countries.
-          </p>
-          <Button className="rounded-lg px-4 py-1.5 text-xs shadow-lg shadow-primary/20 md:rounded-xl md:px-8 md:py-2 md:text-sm" onClick={() => navigate('/settings')}>
-            Browse Numbers
-          </Button>
+        </div>
+
+        {/* Active Numbers List */}
+        <div className="animate-fade-in animate-delay-100 shrink-0 flex flex-col gap-2.5 mt-1">
+          <div className="flex justify-between items-end px-1">
+            <h3 className="text-[14px] font-bold text-slate-800 dark:text-slate-100 tracking-tight">Your Portfolio</h3>
+            <button className="text-[10px] font-extrabold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1">
+              <Filter className="w-3.5 h-3.5" /> Filter
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {numbers.map((n) => (
+              <div key={n.id} className="bg-white border border-slate-200/80 rounded-[20px] shadow-[0_4px_15px_rgba(15,23,42,0.03)] p-3.5 flex flex-col gap-3 dark:bg-slate-900 dark:border-slate-700/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-50 text-[18px] flex items-center justify-center shrink-0 border border-slate-200 shadow-sm dark:bg-slate-800 dark:border-slate-600">
+                      {n.flag}
+                    </div>
+                    <div className="flex flex-col">
+                      <h4 className="text-[15px] font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">{n.number}</h4>
+                      <span className="text-[10px] font-bold text-slate-500">{n.label}</span>
+                    </div>
+                  </div>
+                  <button className="w-8 h-8 rounded-full bg-slate-50 text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors active:scale-95 dark:bg-slate-800 dark:text-slate-400">
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="flex gap-1.5 overflow-hidden">
+                  {n.features.map((f) => {
+                    const cfg = featureBadgeConfig[f];
+                    return <FeatureBadge key={f} icon={cfg.icon} label={cfg.label} color={cfg.color} />;
+                  })}
+                </div>
+
+                <div className="pt-3 border-t border-slate-50 dark:border-slate-700 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Toggle checked={n.active} onChange={() => toggleActive(n.id)} />
+                    <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">{n.active ? 'Active' : 'Inactive'}</span>
+                  </div>
+                  {n.forwarding ? (
+                    <span className="text-[10px] font-semibold text-slate-500 bg-slate-50 px-2 py-1 rounded-[8px] border border-slate-100 flex items-center gap-1 dark:bg-slate-800 dark:border-slate-700">
+                      <PhoneForwarded className="w-3 h-3" /> Fwd: {n.forwarding}
+                    </span>
+                  ) : n.voicemail ? (
+                    <span className="text-[10px] font-semibold text-slate-500 bg-slate-50 px-2 py-1 rounded-[8px] border border-slate-100 flex items-center gap-1 dark:bg-slate-800 dark:border-slate-700">
+                      <Voicemail className="w-3 h-3" /> Send to Voicemail
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Usage Insight Banner */}
-      <div className="relative flex flex-col items-center gap-2.5 overflow-hidden rounded-2xl glass-card p-2.5 md:flex-row md:gap-6 md:rounded-[2.5rem] md:p-6">
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-secondary/10 blur-3xl" />
-        <div className="relative z-10 flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-xl md:h-24 md:w-24 md:rounded-3xl">
-          <Lightbulb className="h-7 w-7 md:h-10 md:w-10" />
+      {/* Buy Number Modal - Mobile */}
+      {buyModalOpen && (
+        <div className="lg:hidden fixed inset-0 z-[60]">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setBuyModalOpen(false)} />
+          <div className="absolute left-0 right-0 bottom-0 bg-white rounded-t-[28px] flex flex-col max-h-[85vh] dark:bg-slate-900">
+            <div className="shrink-0 pt-2 pb-3 px-5 border-b border-slate-100 dark:border-slate-700 flex flex-col items-center relative">
+              <div className="w-10 h-1.5 bg-slate-200 rounded-full mb-3 dark:bg-slate-700" />
+              <h2 className="text-[18px] font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">Get a New Number</h2>
+              <button onClick={() => setBuyModalOpen(false)} className="absolute top-4 right-4 w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 active:scale-95 dark:bg-slate-800">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="shrink-0 p-4 bg-slate-50/50 flex flex-col gap-3 border-b border-slate-100 dark:bg-slate-800/50 dark:border-slate-700">
+              <div className="relative w-full shadow-sm">
+                <Search className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none w-4 h-4 my-auto" />
+                <input
+                  type="text"
+                  placeholder="Search Country, Area Code or Number..."
+                  className="w-full h-11 bg-white border border-slate-200 rounded-[14px] pl-10 pr-3 text-[13px] font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+                />
+              </div>
+              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                {countryFilters.map((cf, i) => (
+                  <button
+                    key={cf.label}
+                    onClick={() => setActiveFilter(i)}
+                    className={cn(
+                      'px-3.5 py-1.5 rounded-[10px] text-[11px] font-bold whitespace-nowrap transition-all',
+                      activeFilter === i
+                        ? 'bg-slate-800 text-white shadow-sm dark:bg-indigo-600'
+                        : 'bg-white border border-slate-200 text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'
+                    )}
+                  >
+                    {cf.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex-grow overflow-y-auto px-4 py-3 flex flex-col gap-2.5">
+              <p className="text-[11px] font-bold text-slate-500 mb-1 dark:text-slate-400">Available Numbers in <span className="text-slate-800 dark:text-slate-100">United States</span></p>
+              {availableNumbers.map((opt) => (
+                <div
+                  key={opt.id}
+                  onClick={() => selectNumber(opt.id, opt.price)}
+                  className={cn(
+                    'relative p-3 border-2 rounded-[16px] cursor-pointer flex items-center justify-between transition-all active:scale-[0.98]',
+                    selectedNumber === opt.id
+                      ? 'border-indigo-600 bg-indigo-50/30'
+                      : 'border-slate-100 bg-white dark:border-slate-700 dark:bg-slate-800'
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-slate-50 text-[16px] flex items-center justify-center shrink-0 border border-slate-200 dark:bg-slate-700 dark:border-slate-600">
+                      {opt.flag}
+                    </div>
+                    <div className="flex flex-col">
+                      <h4 className="text-[14px] font-extrabold text-slate-800 dark:text-slate-100">{opt.number}</h4>
+                      <div className="flex gap-1 mt-1">
+                        {opt.features.map((f) => (
+                          <span key={f} className="text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 rounded dark:bg-slate-700 dark:text-slate-300">{f}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-[13px] font-extrabold text-indigo-600">${opt.price.toFixed(2)}<span className="text-[9px] text-slate-400">/mo</span></span>
+                    <div className={cn(
+                      'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors',
+                      selectedNumber === opt.id ? 'bg-indigo-600 border-indigo-600' : 'border-slate-200 dark:border-slate-600'
+                    )}>
+                      {selectedNumber === opt.id && <Check className="w-3 h-3 text-white" />}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="shrink-0 p-4 border-t border-slate-100 bg-white shadow-[0_-4px_15px_rgba(0,0,0,0.03)] dark:bg-slate-900 dark:border-slate-700">
+              <button
+                disabled={!selectedNumber}
+                className={cn(
+                  'w-full h-12 rounded-[16px] text-[14px] font-extrabold flex items-center justify-center transition-all',
+                  selectedNumber
+                    ? 'bg-indigo-600 text-white shadow-[0_8px_20px_rgba(79,70,229,0.3)] active:scale-95'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700'
+                )}
+              >
+                {selectedNumber ? `Pay $${selectedPrice?.toFixed(2)}/mo` : 'Select a Number'}
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="relative z-10 flex-1">
-          <h4 className="mb-0.5 text-base font-semibold md:mb-1 md:text-xl">Optimization Tip</h4>
-          <p className="text-xs text-muted-foreground md:text-base">
-            Your 'Sales Desk' number has reached 85% of its monthly token limit. Consider setting up an auto-recharge or
-            upgrading your tier to prevent service interruption.
-          </p>
+      )}
+
+      {/* ========================================= */}
+      {/* DESKTOP LAYOUT (hidden below lg)          */}
+      {/* ========================================= */}
+      <div className="hidden lg:block p-8 pb-8">
+        {/* Header */}
+        <div className="mb-8 flex flex-row items-end justify-between gap-6">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">Phone Numbers</h2>
+            <p className="text-sm text-slate-500 mt-1 leading-tight">Manage your virtual numbers across all regions.</p>
+          </div>
+          <div className="flex gap-3 shrink-0">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search number or label..."
+                className="h-11 w-64 bg-white border border-slate-200 rounded-xl pl-10 pr-3 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+              />
+            </div>
+            <button className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 font-bold shadow-sm hover:border-indigo-300 hover:text-indigo-600 transition-all dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">
+              <Filter className="w-4 h-4" /> All Countries
+            </button>
+            <button
+              onClick={() => setBuyModalOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-extrabold shadow-[0_4px_12px_rgba(99,102,241,0.3)] hover:bg-indigo-500 active:scale-95 transition-all"
+            >
+              <Plus className="w-4 h-4" /> Get New Number
+            </button>
+          </div>
         </div>
-        <div className="relative z-10">
-          <Button variant="outline" className="rounded-lg px-3 py-1.5 text-xs font-semibold md:rounded-xl md:px-6 md:py-2 md:text-sm">
-            View Usage Analysis
-          </Button>
+
+        {/* Summary Bar */}
+        <div className="mb-6 grid grid-cols-3 gap-4">
+          <div className="premium-card rounded-2xl p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <Phone className="w-6 h-6" />
+            </div>
+            <div>
+              <span className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Active Lines</span>
+              <h3 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-none mt-1">{numbers.filter((n) => n.active).length}</h3>
+            </div>
+          </div>
+          <div className="premium-card rounded-2xl p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <MessageSquare className="w-6 h-6" />
+            </div>
+            <div>
+              <span className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Total Numbers</span>
+              <h3 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-none mt-1">{numbers.length}</h3>
+            </div>
+          </div>
+          <div className="premium-card rounded-2xl p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <ShoppingCart className="w-6 h-6" />
+            </div>
+            <div>
+              <span className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Monthly Cost</span>
+              <h3 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 leading-none mt-1">${totalMonthly.toFixed(2)}</h3>
+            </div>
+          </div>
+        </div>
+
+        {/* Numbers Grid */}
+        <div className="grid grid-cols-2 gap-6">
+          {numbers.map((n) => (
+            <div key={n.id} className="premium-card rounded-2xl p-6 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-slate-50 text-[22px] flex items-center justify-center shrink-0 border border-slate-200 shadow-sm dark:bg-slate-800 dark:border-slate-600">
+                    {n.flag}
+                  </div>
+                  <div className="flex flex-col">
+                    <h4 className="text-lg font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">{n.number}</h4>
+                    <span className="text-xs font-bold text-slate-500">{n.label}</span>
+                  </div>
+                </div>
+                <button className="w-9 h-9 rounded-full bg-slate-50 text-slate-500 hover:bg-slate-100 flex items-center justify-center transition-colors dark:bg-slate-800 dark:text-slate-400">
+                  <MoreVertical className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex gap-2">
+                {n.features.map((f) => {
+                  const cfg = featureBadgeConfig[f];
+                  return <FeatureBadge key={f} icon={cfg.icon} label={cfg.label} color={cfg.color} />;
+                })}
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Toggle checked={n.active} onChange={() => toggleActive(n.id)} />
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{n.active ? 'Active' : 'Inactive'}</span>
+                </div>
+                {n.forwarding ? (
+                  <span className="text-xs font-semibold text-slate-500 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100 flex items-center gap-1.5 dark:bg-slate-800 dark:border-slate-700">
+                    <PhoneForwarded className="w-3.5 h-3.5" /> Fwd: {n.forwarding}
+                  </span>
+                ) : n.voicemail ? (
+                  <span className="text-xs font-semibold text-slate-500 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100 flex items-center gap-1.5 dark:bg-slate-800 dark:border-slate-700">
+                    <Voicemail className="w-3.5 h-3.5" /> Send to Voicemail
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
+
+      {/* Buy Number Modal - Desktop */}
+      {buyModalOpen && (
+        <div className="hidden lg:flex fixed inset-0 z-[60] items-center justify-center">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setBuyModalOpen(false)} />
+          <div className="relative bg-white rounded-[24px] shadow-2xl flex flex-col w-[600px] max-h-[80vh] dark:bg-slate-900">
+            <div className="shrink-0 px-6 py-5 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+              <h2 className="text-xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">Get a New Number</h2>
+              <button onClick={() => setBuyModalOpen(false)} className="w-9 h-9 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors dark:bg-slate-800">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="shrink-0 p-5 bg-slate-50/50 flex flex-col gap-3 border-b border-slate-100 dark:bg-slate-800/50 dark:border-slate-700">
+              <div className="relative w-full shadow-sm">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search Country, Area Code or Number..."
+                  className="w-full h-11 bg-white border border-slate-200 rounded-xl pl-11 pr-3 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+                />
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {countryFilters.map((cf, i) => (
+                  <button
+                    key={cf.label}
+                    onClick={() => setActiveFilter(i)}
+                    className={cn(
+                      'px-4 py-2 rounded-xl text-xs font-bold transition-all',
+                      activeFilter === i
+                        ? 'bg-slate-800 text-white shadow-sm dark:bg-indigo-600'
+                        : 'bg-white border border-slate-200 text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'
+                    )}
+                  >
+                    {cf.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex-grow overflow-y-auto px-5 py-4 flex flex-col gap-3">
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Available Numbers in <span className="text-slate-800 dark:text-slate-100">United States</span></p>
+              {availableNumbers.map((opt) => (
+                <div
+                  key={opt.id}
+                  onClick={() => selectNumber(opt.id, opt.price)}
+                  className={cn(
+                    'relative p-4 border-2 rounded-2xl cursor-pointer flex items-center justify-between transition-all hover:scale-[1.01]',
+                    selectedNumber === opt.id
+                      ? 'border-indigo-600 bg-indigo-50/30'
+                      : 'border-slate-100 bg-white hover:border-slate-200 dark:border-slate-700 dark:bg-slate-800'
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-50 text-[18px] flex items-center justify-center shrink-0 border border-slate-200 dark:bg-slate-700 dark:border-slate-600">
+                      {opt.flag}
+                    </div>
+                    <div className="flex flex-col">
+                      <h4 className="text-sm font-extrabold text-slate-800 dark:text-slate-100">{opt.number}</h4>
+                      <div className="flex gap-1 mt-1">
+                        {opt.features.map((f) => (
+                          <span key={f} className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded dark:bg-slate-700 dark:text-slate-300">{f}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1.5">
+                    <span className="text-sm font-extrabold text-indigo-600">${opt.price.toFixed(2)}<span className="text-[10px] text-slate-400">/mo</span></span>
+                    <div className={cn(
+                      'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors',
+                      selectedNumber === opt.id ? 'bg-indigo-600 border-indigo-600' : 'border-slate-200 dark:border-slate-600'
+                    )}>
+                      {selectedNumber === opt.id && <Check className="w-3 h-3 text-white" />}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="shrink-0 p-5 border-t border-slate-100 bg-white dark:bg-slate-900 dark:border-slate-700">
+              <button
+                disabled={!selectedNumber}
+                className={cn(
+                  'w-full h-12 rounded-2xl text-sm font-extrabold flex items-center justify-center transition-all',
+                  selectedNumber
+                    ? 'bg-indigo-600 text-white shadow-[0_8px_20px_rgba(79,70,229,0.3)] active:scale-95'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700'
+                )}
+              >
+                {selectedNumber ? `Pay $${selectedPrice?.toFixed(2)}/mo` : 'Select a Number'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
