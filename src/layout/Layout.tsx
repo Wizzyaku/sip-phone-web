@@ -24,7 +24,7 @@ export function Layout() {
             />
             <div
               className={cn(
-                'absolute left-0 top-0 bottom-[80px] w-[280px] shadow-2xl rounded-r-[24px] overflow-hidden'
+                'absolute left-0 top-0 h-full w-[280px] shadow-2xl rounded-r-[24px] overflow-hidden'
               )}
             >
               <Sidebar onNavigate={() => setMobileOpen(false)} />
@@ -34,10 +34,10 @@ export function Layout() {
 
         <div className="flex min-w-0 flex-1 flex-col lg:ml-[280px]">
           <Header onMenuClick={() => setMobileOpen((open) => !open)} />
-          <main className="flex min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pt-16 lg:pt-16 pb-[90px] lg:pb-6">
+          <main className={cn('flex min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pt-16 lg:pt-16 pb-[90px] lg:pb-6', mobileOpen && 'overflow-hidden')}>
             <Outlet />
           </main>
-          <MobileBottomNav />
+          {!mobileOpen && <MobileBottomNav />}
         </div>
       </div>
     </SipProvider>

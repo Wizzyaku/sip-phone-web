@@ -38,8 +38,8 @@ const keypad = [
   { digit: '7', sub: 'PQRS' },
   { digit: '8', sub: 'TUV' },
   { digit: '9', sub: 'WXYZ' },
-  { digit: '*', sub: '' },
-  { digit: '0', sub: '+' },
+  { digit: '+', sub: '' },
+  { digit: '0', sub: '' },
   { digit: '#', sub: '' },
 ];
 

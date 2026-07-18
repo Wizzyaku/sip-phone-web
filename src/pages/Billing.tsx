@@ -172,9 +172,9 @@ export function Billing() {
           {/* Scrollable Content */}
           <div className="flex-grow overflow-y-auto no-scrollbar px-4 pt-3 pb-[10px] flex flex-col gap-3.5 z-10">
             {/* 1. Wallet / Balance Hero Card */}
-            <div className="animate-fade-in shrink-0 relative overflow-hidden bg-gradient-to-br from-indigo-600 to-indigo-900 rounded-[20px] shadow-[0_8px_25px_rgba(79,70,229,0.25)] p-4 flex flex-col gap-4">
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl z-0" />
-              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl z-0" />
+            <div className="animate-fade-in shrink-0 relative overflow-hidden hero-card rounded-[20px] shadow-[0_8px_25px_rgba(15,23,42,0.15)] p-4 flex flex-col gap-4">
+              <div className="absolute -top-12 -right-12 w-32 h-32 bg-indigo-500/30 rounded-full blur-2xl z-0" />
+              <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-purple-500/20 rounded-full blur-2xl z-0" />
 
               <div className="relative z-10 flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
@@ -357,8 +357,8 @@ export function Billing() {
               {/* Left Column: Wallet & Packages */}
               <div className="col-span-7 flex flex-col gap-5">
                 {/* Wallet Hero Card */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 to-indigo-900 rounded-[24px] shadow-[0_8px_25px_rgba(79,70,229,0.25)] p-6 flex flex-col gap-5">
-                  <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/10 rounded-full blur-3xl z-0" />
+                <div className="relative overflow-hidden hero-card rounded-[24px] shadow-[0_8px_25px_rgba(15,23,42,0.15)] p-6 flex flex-col gap-5">
+                  <div className="absolute -top-16 -right-16 w-48 h-48 bg-indigo-500/30 rounded-full blur-3xl z-0" />
                   <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl z-0" />
 
                   <div className="relative z-10 flex items-start justify-between">
