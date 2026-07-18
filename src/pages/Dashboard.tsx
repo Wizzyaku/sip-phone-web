@@ -19,6 +19,7 @@ import {
 import { useAppStore } from '../store/appStore';
 import { formatTokens } from '../lib/balance';
 import { cn } from '../lib/utils';
+import { BuyNumberModal } from '../components/BuyNumberModal';
 
 function formatTime(date: string): string {
   return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -39,6 +40,7 @@ export function Dashboard() {
   const balanceLoading = useAppStore((s) => s.balanceLoading);
   const navigate = useNavigate();
   const [topUpOpen, setTopUpOpen] = useState(false);
+  const [buyNumberOpen, setBuyNumberOpen] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(50);
   const [paying, setPaying] = useState(false);
 
@@ -121,7 +123,7 @@ export function Dashboard() {
 
           <div className="relative z-10 flex gap-2">
             <button
-              onClick={() => navigate('/settings')}
+              onClick={() => setBuyNumberOpen(true)}
               className="flex-1 h-10 bg-indigo-500 hover:bg-indigo-400 text-white rounded-[12px] text-[12px] font-extrabold flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(99,102,241,0.3)] active:scale-95 transition-all"
             >
               <Phone className="w-4 h-4" /> Buy Number
@@ -342,7 +344,7 @@ export function Dashboard() {
 
             <div className="relative z-10 flex gap-3">
               <button
-                onClick={() => navigate('/settings')}
+                onClick={() => setBuyNumberOpen(true)}
                 className="flex-1 h-11 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(99,102,241,0.3)] active:scale-95 transition-all"
               >
                 <Phone className="w-4 h-4" /> Buy Number
@@ -666,6 +668,7 @@ export function Dashboard() {
           </div>
         </>
       )}
+      <BuyNumberModal open={buyNumberOpen} onClose={() => setBuyNumberOpen(false)} />
     </div>
   );
 }

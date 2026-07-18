@@ -72,6 +72,9 @@ export function Settings() {
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(false);
   const [signOutModal, setSignOutModal] = useState(false);
+  const [helpCenterModal, setHelpCenterModal] = useState(false);
+  const [termsPrivacyModal, setTermsPrivacyModal] = useState(false);
+  const [clearNotifModal, setClearNotifModal] = useState(false);
   const isDesktop = useIsDesktop();
 
   const accountNumber = '#PRO-8892-XKB-001';
@@ -399,7 +402,10 @@ export function Settings() {
             {/* 4. Support & Legal */}
             <div className="animate-fade-in animate-delay-300 shrink-0 flex flex-col gap-2 mt-1">
               <div className="bg-white border border-slate-200/80 rounded-[20px] shadow-[0_4px_15px_rgba(15,23,42,0.03)] flex flex-col divide-y divide-slate-100 p-1.5 dark:bg-slate-900 dark:border-slate-700/50 dark:divide-slate-700/50">
-                <div className="p-2 flex items-center justify-between group active:bg-slate-50 rounded-[14px] transition-colors cursor-pointer dark:active:bg-slate-800">
+                <button
+                  onClick={() => setHelpCenterModal(true)}
+                  className="p-2 flex items-center justify-between group active:bg-slate-50 rounded-[14px] transition-colors text-left w-full dark:active:bg-slate-800"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-[10px] bg-slate-50 flex items-center justify-center text-slate-600 shrink-0 dark:bg-slate-800 dark:text-slate-400">
                       <HelpCircle className="w-4 h-4" />
@@ -407,8 +413,11 @@ export function Settings() {
                     <span className="text-[13px] font-bold text-slate-800 dark:text-slate-100">Help Center</span>
                   </div>
                   <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-indigo-500 transition-colors" />
-                </div>
-                <div className="p-2 flex items-center justify-between group active:bg-slate-50 rounded-[14px] transition-colors cursor-pointer dark:active:bg-slate-800">
+                </button>
+                <button
+                  onClick={() => setTermsPrivacyModal(true)}
+                  className="p-2 flex items-center justify-between group active:bg-slate-50 rounded-[14px] transition-colors text-left w-full dark:active:bg-slate-800"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-[10px] bg-slate-50 flex items-center justify-center text-slate-600 shrink-0 dark:bg-slate-800 dark:text-slate-400">
                       <FileText className="w-4 h-4" />
@@ -416,10 +425,10 @@ export function Settings() {
                     <span className="text-[13px] font-bold text-slate-800 dark:text-slate-100">Terms & Privacy</span>
                   </div>
                   <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-indigo-500 transition-colors" />
-                </div>
+                </button>
                 {/* Clear Notifications */}
                 <button
-                  onClick={clearNotifications}
+                  onClick={() => setClearNotifModal(true)}
                   className="p-2 flex items-center justify-between group active:bg-slate-50 rounded-[14px] transition-colors text-left w-full dark:active:bg-slate-800"
                 >
                   <div className="flex items-center gap-3">
@@ -756,7 +765,7 @@ export function Settings() {
                       You have {notifications.length} stored notification{notifications.length === 1 ? '' : 's'}.
                     </p>
                     <button
-                      onClick={clearNotifications}
+                      onClick={() => setClearNotifModal(true)}
                       className="text-[13px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1.5 dark:text-indigo-400"
                     >
                       <RotateCcw className="w-3.5 h-3.5" /> Clear All Notifications
@@ -811,6 +820,149 @@ export function Settings() {
                 </button>
                 <button
                   onClick={() => setSignOutModal(false)}
+                  className="w-full h-12 bg-slate-50 text-slate-600 rounded-[16px] text-[14px] font-extrabold flex items-center justify-center active:scale-95 transition-all border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* HELP CENTER MODAL                           */}
+      {/* ========================================== */}
+      {helpCenterModal && (
+        <div className="fixed inset-0 z-[110] flex flex-col justify-end">
+          <div
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setHelpCenterModal(false)}
+          />
+          <div className="relative flex w-full flex-col rounded-t-[28px] bg-white pb-8 pt-3 shadow-[0_-15px_40px_rgba(0,0,0,0.2)] transition-transform dark:bg-slate-900 max-w-[430px] mx-auto max-h-[85vh]">
+            <div className="mx-auto h-1.5 w-10 rounded-full bg-slate-200 mb-4 dark:bg-slate-700" />
+            <div className="px-5 flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-[14px] bg-indigo-50 flex items-center justify-center text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+                  <HelpCircle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-[18px] font-extrabold text-slate-800 tracking-tight dark:text-slate-100">Help Center</h2>
+                  <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Find answers and get support</p>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                {[
+                  { icon: Mail, title: 'Contact Support', desc: 'Reach our team via email' },
+                  { icon: HelpCircle, title: 'FAQs', desc: 'Frequently asked questions' },
+                  { icon: Phone, title: 'Call Us', desc: '+1 (800) 555-0199' },
+                ].map((item) => (
+                  <div key={item.title} className="flex items-center gap-3 p-3.5 bg-slate-50 rounded-[14px] border border-slate-100 dark:bg-slate-800 dark:border-slate-700">
+                    <div className="w-9 h-9 rounded-[10px] bg-white flex items-center justify-center text-slate-600 shrink-0 border border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300">
+                      <item.icon className="w-4 h-4" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[13px] font-bold text-slate-800 dark:text-slate-100">{item.title}</span>
+                      <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{item.desc}</span>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-slate-300 ml-auto" />
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => setHelpCenterModal(false)}
+                className="w-full h-12 bg-slate-50 text-slate-600 rounded-[16px] text-[14px] font-extrabold flex items-center justify-center active:scale-95 transition-all border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* TERMS & PRIVACY MODAL                       */}
+      {/* ========================================== */}
+      {termsPrivacyModal && (
+        <div className="fixed inset-0 z-[110] flex flex-col justify-end">
+          <div
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setTermsPrivacyModal(false)}
+          />
+          <div className="relative flex w-full flex-col rounded-t-[28px] bg-white pb-8 pt-3 shadow-[0_-15px_40px_rgba(0,0,0,0.2)] transition-transform dark:bg-slate-900 max-w-[430px] mx-auto max-h-[85vh]">
+            <div className="mx-auto h-1.5 w-10 rounded-full bg-slate-200 mb-4 dark:bg-slate-700" />
+            <div className="px-5 flex flex-col gap-4 flex-grow overflow-y-auto no-scrollbar">
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="w-12 h-12 rounded-[14px] bg-indigo-50 flex items-center justify-center text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-[18px] font-extrabold text-slate-800 tracking-tight dark:text-slate-100">Terms & Privacy</h2>
+                  <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Last updated: July 2026</p>
+                </div>
+              </div>
+              <div className="flex flex-col gap-3 text-[12px] font-medium text-slate-600 leading-relaxed dark:text-slate-300">
+                <div>
+                  <h3 className="text-[13px] font-extrabold text-slate-800 dark:text-slate-100 mb-1">Terms of Service</h3>
+                  <p>By using Phonicity, you agree to our terms of service. You are responsible for maintaining the security of your account and for all activities that occur under your account.</p>
+                </div>
+                <div>
+                  <h3 className="text-[13px] font-extrabold text-slate-800 dark:text-slate-100 mb-1">Privacy Policy</h3>
+                  <p>We respect your privacy and are committed to protecting your personal data. We collect only the information necessary to provide our services and do not share your data with third parties without consent.</p>
+                </div>
+                <div>
+                  <h3 className="text-[13px] font-extrabold text-slate-800 dark:text-slate-100 mb-1">Data Retention</h3>
+                  <p>Your call logs and messages are retained for 90 days. You may request data deletion at any time by contacting support.</p>
+                </div>
+                <div>
+                  <h3 className="text-[13px] font-extrabold text-slate-800 dark:text-slate-100 mb-1">Acceptable Use</h3>
+                  <p>You agree not to use Phonicity for unlawful activities, spam, or harassment. Violations may result in account termination.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setTermsPrivacyModal(false)}
+                className="w-full h-12 bg-slate-50 text-slate-600 rounded-[16px] text-[14px] font-extrabold flex items-center justify-center active:scale-95 transition-all border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 shrink-0"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* CLEAR NOTIFICATIONS MODAL                   */}
+      {/* ========================================== */}
+      {clearNotifModal && (
+        <div className="fixed inset-0 z-[110] flex flex-col justify-end">
+          <div
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setClearNotifModal(false)}
+          />
+          <div className="relative flex w-full flex-col rounded-t-[28px] bg-white pb-8 pt-3 shadow-[0_-15px_40px_rgba(0,0,0,0.2)] transition-transform dark:bg-slate-900 max-w-[430px] mx-auto">
+            <div className="mx-auto h-1.5 w-10 rounded-full bg-slate-200 mb-4 dark:bg-slate-700" />
+
+            <div className="px-5 flex flex-col gap-4 text-center items-center">
+              <div className="w-14 h-14 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mb-1 dark:bg-rose-900/20">
+                <RotateCcw className="w-7 h-7" />
+              </div>
+
+              <div>
+                <h2 className="text-[18px] font-extrabold text-slate-800 tracking-tight dark:text-slate-100">Clear Notifications</h2>
+                <p className="text-[12px] font-medium text-slate-500 mt-2 leading-relaxed max-w-[280px] dark:text-slate-400">
+                  Are you sure you want to clear all {notifications.length} notification{notifications.length === 1 ? '' : 's'}? This action cannot be undone.
+                </p>
+              </div>
+
+              <div className="w-full flex flex-col gap-2.5 mt-2">
+                <button
+                  onClick={() => { clearNotifications(); setClearNotifModal(false); }}
+                  className="w-full h-12 bg-rose-500 text-white rounded-[16px] text-[14px] font-extrabold flex items-center justify-center active:scale-95 transition-all shadow-[0_8px_20px_rgba(244,63,94,0.25)]"
+                >
+                  Yes, Clear All
+                </button>
+                <button
+                  onClick={() => setClearNotifModal(false)}
                   className="w-full h-12 bg-slate-50 text-slate-600 rounded-[16px] text-[14px] font-extrabold flex items-center justify-center active:scale-95 transition-all border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
                 >
                   Cancel
